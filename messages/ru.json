@@ -1,5 +1,81 @@
 {
-  "Index": {
-    "title": "Торговый Журнал"
-  }
+  "app": {
+    "title": "Торговый Журнал",
+    "subtitle": "Отслеживайте, анализируйте и развивайте свои торговые результаты."
+  },
+  "nav": {
+    "dashboard": "Дашборд",
+    "calendar": "Календарь",
+    "analytics": "Аналитика",
+    "wallet": "Кошелёк",
+    "reports": "Отчёты"
+  },
+  "header": {
+    "share": "Поделиться",
+    "addBinance": "Добавить Binance"
+  },
+  "theme": {
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "system": "Система",
+    "toggle": "Сменить тему"
+  },
+  "trades": {
+    "title": "Журнал",
+    "subtitle": "Отслеживайте и анализируйте сделки как профессионал.",
+    "addTrade": "Добавить сделку",
+    "table": "Таблица",
+    "monthly": "По месяцам",
+    "noTrades": "Сделки не найдены. Добавьте первую сделку!",
+    "mock": "Тестовые данные — добавьте Supabase для реальных данных"
+  },
+  "table": {
+    "ticker": "Инструмент",
+    "direction": "Направление",
+    "type": "Тип",
+    "entryDate": "Дата входа",
+    "exitDate": "Дата выхода",
+    "entryPrice": "Цена входа",
+    "exitPrice": "Цена выхода",
+    "quantity": "Кол-во",
+    "pnl": "П/У",
+    "link": "Ссылка",
+    "actions": "Действия",
+    "crypto": "Крипто",
+    "other": "Другое",
+    "long": "ЛОНГ",
+    "short": "ШОРТ"
+  },
+  "metrics": {
+    "totalPnl": "Общая П/У",
+    "winRate": "Процент побед",
+    "totalTrades": "Всего сделок",
+    "allTime": "За всё время",
+    "wins": "{wins}/{total} побед"
+  },
+  "chart": {
+    "equityCurve": "Кривая капитала",
+    "noData": "Нет данных"
+  },
+  "modal": {
+    "newTrade": "Новая сделка",
+    "newTradeDesc": "Заполните данные сделки ниже.",
+    "symbol": "Символ",
+    "direction": "Направление",
+    "long": "Лонг",
+    "short": "Шорт",
+    "quantity": "Количество",
+    "entryPrice": "Цена входа",
+    "exitPrice": "Цена выхода",
+    "entryDate": "Дата входа",
+    "exitDate": "Дата выхода",
+    "tradingViewLink": "Ссылка TradingView",
+    "notes": "Заметки",
+    "notesPlaceholder": "Заметки по сетапу...",
+    "cancel": "Отмена",
+    "saving": "Сохранение...",
+    "save": "Сохранить сделку"
+  },
+  "deleteConfirm": "Удалить сделку {symbol}?",
+  "deleteError": "Не удалось удалить сделку"
 }

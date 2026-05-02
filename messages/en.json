@@ -1,5 +1,81 @@
 {
-  "Index": {
-    "title": "Trading Journal"
-  }
+  "app": {
+    "title": "Trading Journal",
+    "subtitle": "Track, analyze and grow your trading performance."
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "calendar": "Calendar",
+    "analytics": "Analytics",
+    "wallet": "Wallet",
+    "reports": "Reports"
+  },
+  "header": {
+    "share": "Share",
+    "addBinance": "Add Binance"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "toggle": "Toggle theme"
+  },
+  "trades": {
+    "title": "Journal",
+    "subtitle": "Track and analyze your trades like a pro.",
+    "addTrade": "Add Trade",
+    "table": "Table",
+    "monthly": "Monthly",
+    "noTrades": "No trades found. Add your first trade!",
+    "mock": "Mock data — add your Supabase credentials for live data"
+  },
+  "table": {
+    "ticker": "Ticker",
+    "direction": "Direction",
+    "type": "Type",
+    "entryDate": "Entry Date",
+    "exitDate": "Exit Date",
+    "entryPrice": "Entry Price",
+    "exitPrice": "Exit Price",
+    "quantity": "Qty",
+    "pnl": "P/L",
+    "link": "Link",
+    "actions": "Actions",
+    "crypto": "Crypto",
+    "other": "Other",
+    "long": "LONG",
+    "short": "SHORT"
+  },
+  "metrics": {
+    "totalPnl": "Total P&L",
+    "winRate": "Win Rate",
+    "totalTrades": "Total Trades",
+    "allTime": "All time",
+    "wins": "{wins}/{total} wins"
+  },
+  "chart": {
+    "equityCurve": "Equity Curve",
+    "noData": "No data"
+  },
+  "modal": {
+    "newTrade": "New Trade",
+    "newTradeDesc": "Fill in the trade details below.",
+    "symbol": "Symbol",
+    "direction": "Direction",
+    "long": "Long",
+    "short": "Short",
+    "quantity": "Quantity",
+    "entryPrice": "Entry Price",
+    "exitPrice": "Exit Price",
+    "entryDate": "Entry Date",
+    "exitDate": "Exit Date",
+    "tradingViewLink": "TradingView Link",
+    "notes": "Notes",
+    "notesPlaceholder": "Setup notes...",
+    "cancel": "Cancel",
+    "saving": "Saving...",
+    "save": "Save Trade"
+  },
+  "deleteConfirm": "Delete {symbol} trade?",
+  "deleteError": "Failed to delete trade"
 }

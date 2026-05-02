@@ -1,5 +1,81 @@
 {
-  "Index": {
-    "title": "Söwda Jurnaly"
-  }
+  "app": {
+    "title": "Söwda Jurnaly",
+    "subtitle": "Söwdalaryňyzy yzarlaň, seljeriň we ösdüriň."
+  },
+  "nav": {
+    "dashboard": "Baş sahypa",
+    "calendar": "Senenama",
+    "analytics": "Derňew",
+    "wallet": "Gapjyk",
+    "reports": "Hasabatlar"
+  },
+  "header": {
+    "share": "Paýlaşmak",
+    "addBinance": "Binance goş"
+  },
+  "theme": {
+    "light": "Açyk",
+    "dark": "Garaňky",
+    "system": "Sistema",
+    "toggle": "Reňki üýtget"
+  },
+  "trades": {
+    "title": "Gündelik",
+    "subtitle": "Söwdalaryňyzy professional derejede yzarlaň.",
+    "addTrade": "Söwda goş",
+    "table": "Tablisa",
+    "monthly": "Aýlyk",
+    "noTrades": "Söwda tapylmady. Ilkinji söwdaňyzy goşuň!",
+    "mock": "Synag maglumatlary — hakyky maglumatlar üçin Supabase sazlamalaryňyzy giriziň"
+  },
+  "table": {
+    "ticker": "Simwol",
+    "direction": "Ugur",
+    "type": "Görnüş",
+    "entryDate": "Giriş senesi",
+    "exitDate": "Çykyş senesi",
+    "entryPrice": "Giriş bahasy",
+    "exitPrice": "Çykyş bahasy",
+    "quantity": "Mukdar",
+    "pnl": "PNL",
+    "link": "Baglanyşyk",
+    "actions": "Hereketler",
+    "crypto": "Kripto",
+    "other": "Beýleki",
+    "long": "LONG",
+    "short": "SHORT"
+  },
+  "metrics": {
+    "totalPnl": "Jemi PNL",
+    "winRate": "Ýeňiş derejesi",
+    "totalTrades": "Jemi söwdalar",
+    "allTime": "Ähli wagt",
+    "wins": "{wins}/{total} ýeňiş"
+  },
+  "chart": {
+    "equityCurve": "Kapital egri çyzygy",
+    "noData": "Maglumat ýok"
+  },
+  "modal": {
+    "newTrade": "Täze söwda",
+    "newTradeDesc": "Söwda maglumatlaryny aşakda dolduryň.",
+    "symbol": "Simwol",
+    "direction": "Ugur",
+    "long": "Uzyn",
+    "short": "Gysga",
+    "quantity": "Mukdar",
+    "entryPrice": "Giriş bahasy",
+    "exitPrice": "Çykyş bahasy",
+    "entryDate": "Giriş senesi",
+    "exitDate": "Çykyş senesi",
+    "tradingViewLink": "TradingView baglanyşygy",
+    "notes": "Bellikler",
+    "notesPlaceholder": "Sazlama bellikleri...",
+    "cancel": "Ýatyr",
+    "saving": "Saklanýar...",
+    "save": "Söwdany sakla"
+  },
+  "deleteConfirm": "{symbol} söwdasyny pozalyňmy?",
+  "deleteError": "Söwdany pozmak başartmady"
 }
