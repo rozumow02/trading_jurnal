@@ -2,18 +2,38 @@ import { TradesTable } from "@/components/trades/TradesTable";
 import { AddTradeModal } from "@/components/trades/AddTradeModal";
 import { MetricsCards } from "@/components/dashboard/MetricsCards";
 import { PnLChart } from "@/components/dashboard/PnLChart";
+import { getTrades } from "@/lib/trades-api";
 import { mockTrades } from "@/lib/data";
 import { Button } from "@/components/ui/button";
+import type { Trade } from "@/lib/data";
 
-export default function Home() {
+export default async function Home() {
+  let trades: Trade[] = [];
+  let usingMock = false;
+
+  try {
+    trades = await getTrades();
+    console.log('[Supabase] trades fetched:', trades.length);
+  } catch (err) {
+    console.error('[Supabase] Error:', err);
+    // Fall back to mock data
+    trades = mockTrades;
+    usingMock = true;
+  }
+
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* Header Area */}
+      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold tracking-tight text-foreground/90 font-mono">Journal</h1>
-          <p className="text-muted-foreground text-sm">Track and analyze your trades like a pro.</p>
+          <p className="text-muted-foreground text-sm">
+            Track and analyze your trades like a pro.
+            {usingMock && (
+              <span className="ml-2 text-yellow-500 text-xs">[Mock data — configure Supabase to enable live data]</span>
+            )}
+          </p>
         </div>
         
         <div className="flex items-center gap-3">
@@ -33,16 +53,16 @@ export default function Home() {
         </div>
       </div>
 
-      <MetricsCards />
+      <MetricsCards trades={trades} />
       
-      {/* Portfolio Chart area */}
+      {/* Portfolio Chart */}
       <div className="pt-2">
-        <PnLChart />
+        <PnLChart trades={trades} />
       </div>
 
-      {/* Trades Table Area */}
+      {/* Trades Table */}
       <div className="pt-6">
-        <TradesTable data={mockTrades} />
+        <TradesTable data={trades} />
       </div>
       
     </div>

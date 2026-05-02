@@ -1,0 +1,70 @@
+import { supabase } from "./supabase";
+import type { Trade } from "./data";
+
+export type TradePayload = {
+  trade_type?: number;
+  symbol: string;
+  direction: "long" | "short";
+  quantity: number;
+  entry_date: string;
+  exit_date?: string;
+  buy_price: number;
+  sell_price?: number;
+  trade_link?: string;
+  trade_setup_notes?: string;
+  is_pending?: boolean;
+};
+
+// ─── READ ────────────────────────────────────────────────────────────────────
+export async function getTrades(): Promise<Trade[]> {
+  const { data, error } = await supabase
+    .from("trades")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return data as Trade[];
+}
+
+// ─── CREATE ──────────────────────────────────────────────────────────────────
+export async function createTrade(payload: TradePayload): Promise<Trade> {
+  // Calculate PnL
+  const qty = payload.quantity;
+  const entry = payload.buy_price;
+  const exit = payload.sell_price ?? 0;
+  const pnl_amount =
+    payload.direction === "long" ? (exit - entry) * qty : (entry - exit) * qty;
+  const pnl_percentage = entry > 0 ? (pnl_amount / (entry * qty)) * 100 : 0;
+
+  const { data, error } = await supabase
+    .from("trades")
+    .insert([{ ...payload, pnl_amount, pnl_percentage }])
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Trade;
+}
+
+// ─── UPDATE ──────────────────────────────────────────────────────────────────
+export async function updateTrade(
+  id: number,
+  payload: Partial<TradePayload>,
+): Promise<Trade> {
+  const { data, error } = await supabase
+    .from("trades")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as Trade;
+}
+
+// ─── DELETE ──────────────────────────────────────────────────────────────────
+export async function deleteTrade(id: number): Promise<void> {
+  const { error } = await supabase.from("trades").delete().eq("id", id);
+
+  if (error) throw new Error(error.message);
+}
