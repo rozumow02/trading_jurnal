@@ -44,7 +44,11 @@
     "crypto": "Crypto",
     "other": "Other",
     "long": "LONG",
-    "short": "SHORT"
+    "short": "SHORT",
+    "pending": "PENDING",
+    "open": "Open",
+    "currentPrice": "Current",
+    "unrealized": "Unrealized"
   },
   "metrics": {
     "totalPnl": "Total P&L",
@@ -60,6 +64,8 @@
   "modal": {
     "newTrade": "New Trade",
     "newTradeDesc": "Fill in the trade details below.",
+    "editTrade": "Edit Trade",
+    "editTradeDesc": "Update the trade details below.",
     "symbol": "Symbol",
     "direction": "Direction",
     "long": "Long",
@@ -72,9 +78,22 @@
     "tradingViewLink": "TradingView Link",
     "notes": "Notes",
     "notesPlaceholder": "Setup notes...",
+    "isPending": "Mark as pending (open position)",
+    "pendingBadge": "OPEN",
     "cancel": "Cancel",
     "saving": "Saving...",
-    "save": "Save Trade"
+    "save": "Save Trade",
+    "saveChanges": "Save Changes"
+  },
+  "calendar": {
+    "subtitle": "View your trades by day on a monthly calendar.",
+    "totalTrades": "Total Trades",
+    "totalPnl": "Total P&L",
+    "winRate": "Win Rate",
+    "winning": "Winning",
+    "losing": "Losing",
+    "current": "Current Month",
+    "today": "Today"
   },
   "deleteConfirm": "Delete {symbol} trade?",
   "deleteError": "Failed to delete trade"

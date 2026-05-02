@@ -21,8 +21,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Saraf Trading Terminal',
-  description: 'Premium Trading Dashboard',
+  title: 'Trading Journal',
+  description: 'Trading journal for traders',
 };
 
 export default async function RootLayout({

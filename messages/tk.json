@@ -44,7 +44,11 @@
     "crypto": "Kripto",
     "other": "Beýleki",
     "long": "LONG",
-    "short": "SHORT"
+    "short": "SHORT",
+    "pending": "pending",
+    "open": "Açyk",
+    "currentPrice": "Haz.baha",
+    "unrealized": "unrealized"
   },
   "metrics": {
     "totalPnl": "Jemi PNL",
@@ -60,6 +64,8 @@
   "modal": {
     "newTrade": "Täze söwda",
     "newTradeDesc": "Söwda maglumatlaryny aşakda dolduryň.",
+    "editTrade": "Söwdany üýtget",
+    "editTradeDesc": "Söwdany maglumatlaryny aşakda üýtgediň.",
     "symbol": "Simwol",
     "direction": "Ugur",
     "long": "Uzyn",
@@ -72,9 +78,22 @@
     "tradingViewLink": "TradingView baglanyşygy",
     "notes": "Bellikler",
     "notesPlaceholder": "Sazlama bellikleri...",
+    "isPending": "Gözleýän (açyk pozisiýamy) bellemek",
+    "pendingBadge": "AÇYK",
     "cancel": "Ýatyr",
     "saving": "Saklanýar...",
-    "save": "Söwdany sakla"
+    "save": "Söwdany sakla",
+    "saveChanges": "Üýtgeşmeleri sakla"
+  },
+  "calendar": {
+    "subtitle": "Söwdalaryňyzy aýlyk kalendarda günlär boýunça görün.",
+    "totalTrades": "Jemi söwdalar",
+    "totalPnl": "Jemi PNL",
+    "winRate": "Ýeňiş %",
+    "winning": "Girdeýli",
+    "losing": "Zyýanly",
+    "current": "Haz. aý",
+    "today": "Bu gün"
   },
   "deleteConfirm": "{symbol} söwdasyny pozalyňmy?",
   "deleteError": "Söwdany pozmak başartmady"

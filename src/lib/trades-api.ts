@@ -51,9 +51,22 @@ export async function updateTrade(
   id: number,
   payload: Partial<TradePayload>,
 ): Promise<Trade> {
+  // Recalculate PnL if price-related fields are present
+  let extraFields: Record<string, number> = {};
+  const qty = payload.quantity;
+  const entry = payload.buy_price;
+  const exit = payload.sell_price;
+  const dir = payload.direction;
+
+  if (qty !== undefined && entry !== undefined && exit !== undefined && exit > 0 && dir !== undefined) {
+    const pnl_amount = dir === "long" ? (exit - entry) * qty : (entry - exit) * qty;
+    const pnl_percentage = entry > 0 ? (pnl_amount / (entry * qty)) * 100 : 0;
+    extraFields = { pnl_amount, pnl_percentage };
+  }
+
   const { data, error } = await supabase
     .from("trades")
-    .update(payload)
+    .update({ ...payload, ...extraFields })
     .eq("id", id)
     .select()
     .single();

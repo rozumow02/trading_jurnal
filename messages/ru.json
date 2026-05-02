@@ -44,7 +44,11 @@
     "crypto": "Крипто",
     "other": "Другое",
     "long": "ЛОНГ",
-    "short": "ШОРТ"
+    "short": "ШОРТ",
+    "pending": "ОЖИДАЕТ",
+    "open": "Открыто",
+    "currentPrice": "Текущая",
+    "unrealized": "Нереализ."
   },
   "metrics": {
     "totalPnl": "Общая П/У",
@@ -60,6 +64,8 @@
   "modal": {
     "newTrade": "Новая сделка",
     "newTradeDesc": "Заполните данные сделки ниже.",
+    "editTrade": "Редактировать сделку",
+    "editTradeDesc": "Обновите данные сделки ниже.",
     "symbol": "Символ",
     "direction": "Направление",
     "long": "Лонг",
@@ -72,9 +78,22 @@
     "tradingViewLink": "Ссылка TradingView",
     "notes": "Заметки",
     "notesPlaceholder": "Заметки по сетапу...",
+    "isPending": "Отметить как ожидающую (открытая позиция)",
+    "pendingBadge": "ОТКРЫТО",
     "cancel": "Отмена",
     "saving": "Сохранение...",
-    "save": "Сохранить сделку"
+    "save": "Сохранить сделку",
+    "saveChanges": "Сохранить изменения"
+  },
+  "calendar": {
+    "subtitle": "Просматривайте сделки по дням в ежемесячном календаре.",
+    "totalTrades": "Всего сделок",
+    "totalPnl": "Общая П/У",
+    "winRate": "% побед",
+    "winning": "Прибыльных",
+    "losing": "Убыточных",
+    "current": "Текущий месяц",
+    "today": "Сегодня"
   },
   "deleteConfirm": "Удалить сделку {symbol}?",
   "deleteError": "Не удалось удалить сделку"
