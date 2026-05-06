@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import type { Trade } from "./data";
+import type { Trade, PropAccount } from "./data";
 
 export type TradePayload = {
   trade_type?: number;
@@ -13,13 +13,14 @@ export type TradePayload = {
   trade_link?: string;
   trade_setup_notes?: string;
   is_pending?: boolean;
+  account_id?: string | null;
 };
 
 // ─── READ ────────────────────────────────────────────────────────────────────
 export async function getTrades(): Promise<Trade[]> {
   const { data, error } = await supabase
     .from("trades")
-    .select("*")
+    .select("*, prop_accounts(*)")
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
@@ -54,6 +55,50 @@ export async function getBenchmarks(): Promise<Benchmarks> {
   }
 
   return { series };
+}
+
+// ─── PROP ACCOUNTS ───────────────────────────────────────────────────────────
+export async function getPropAccounts(): Promise<PropAccount[]> {
+  const { data, error } = await supabase
+    .from("prop_accounts")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return data as PropAccount[];
+}
+
+export async function createPropAccount(
+  payload: Omit<PropAccount, "id" | "created_at">
+): Promise<PropAccount> {
+  const { data, error } = await supabase
+    .from("prop_accounts")
+    .insert([payload])
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as PropAccount;
+}
+
+export async function updatePropAccount(
+  id: string,
+  payload: Partial<PropAccount>
+): Promise<PropAccount> {
+  const { data, error } = await supabase
+    .from("prop_accounts")
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data as PropAccount;
+}
+
+export async function deletePropAccount(id: string): Promise<void> {
+  const { error } = await supabase.from("prop_accounts").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 // ─── CREATE ──────────────────────────────────────────────────────────────────

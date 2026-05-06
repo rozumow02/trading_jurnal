@@ -21,8 +21,9 @@ import { ExternalLink, Edit2, Trash2, Clock } from "lucide-react";
 import { deleteTrade } from "@/lib/trades-api";
 import { useRouter } from "@/i18n/routing";
 import { EditTradeModal } from "./EditTradeModal";
+import type { PropAccount } from "@/lib/data";
 
-function TradeActions({ trade }: { trade: Trade }) {
+function TradeActions({ trade, accounts }: { trade: Trade, accounts: PropAccount[] }) {
   const t = useTranslations();
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
@@ -65,12 +66,13 @@ function TradeActions({ trade }: { trade: Trade }) {
         trade={trade}
         open={editOpen}
         onClose={() => setEditOpen(false)}
+        accounts={accounts}
       />
     </>
   );
 }
 
-function useColumns(): ColumnDef<Trade>[] {
+function useColumns(accounts: PropAccount[]): ColumnDef<Trade>[] {
   const t = useTranslations("table");
   return [
     {
@@ -80,9 +82,16 @@ function useColumns(): ColumnDef<Trade>[] {
         const isPending = row.original.is_pending;
         return (
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-foreground tracking-wide">
-              {row.getValue("symbol")}
-            </span>
+            <div className="flex flex-col">
+              <span className="font-semibold text-foreground tracking-wide">
+                {row.getValue("symbol")}
+              </span>
+              {row.original.account_id && (
+                <span className="text-[10px] text-muted-foreground mt-0.5">
+                  {accounts.find(a => a.id === row.original.account_id)?.firm_name || "Account"}
+                </span>
+              )}
+            </div>
             {isPending && (
               <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-semibold">
                 <Clock className="w-2.5 h-2.5" />
@@ -282,14 +291,14 @@ function useColumns(): ColumnDef<Trade>[] {
     {
       id: "actions",
       header: t("actions"),
-      cell: ({ row }) => <TradeActions trade={row.original} />,
+      cell: ({ row }) => <TradeActions trade={row.original} accounts={accounts} />,
     },
   ];
 }
 
-export function TradesTable({ data }: { data: Trade[] }) {
+export function TradesTable({ data, accounts = [] }: { data: Trade[], accounts?: PropAccount[] }) {
   const t = useTranslations("trades");
-  const columns = useColumns();
+  const columns = useColumns(accounts);
 
   // Pending savdolarni yuqoriga chiqar
   const sortedData = React.useMemo(() => {

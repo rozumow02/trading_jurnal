@@ -24,20 +24,26 @@ const TIME_OPTIONS: { key: TimeFilter; label: string }[] = [
 ];
 
 import type { Benchmarks } from "@/lib/trades-api";
+import type { PropAccount } from "@/lib/data";
 
-export function AnalyticsView({ trades, benchmarks }: { trades: Trade[], benchmarks: Benchmarks | null }) {
+export function AnalyticsView({ trades, benchmarks, accounts = [] }: { trades: Trade[], benchmarks: Benchmarks | null, accounts?: PropAccount[] }) {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("total");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
+  const [accountFilter, setAccountFilter] = useState<string>("all");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const filtered = useMemo(
-    () => filterTrades(trades, typeFilter, timeFilter),
-    [trades, typeFilter, timeFilter]
-  );
+  const filtered = useMemo
+  (() => {
+    let result = filterTrades(trades, typeFilter, timeFilter);
+    if (accountFilter !== "all") {
+      result = result.filter(t => t.account_id === accountFilter || (accountFilter === "personal" && !t.account_id));
+    }
+    return result;
+  }, [trades, typeFilter, timeFilter, accountFilter]);
 
   const stats = useMemo(() => computeStats(filtered), [filtered]);
 
@@ -62,16 +68,31 @@ export function AnalyticsView({ trades, benchmarks }: { trades: Trade[], benchma
           ))}
         </div>
 
-        {/* Time select */}
-        <select
-          value={timeFilter}
-          onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
-          className="h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500/40 cursor-pointer"
-        >
-          {TIME_OPTIONS.map((o) => (
-            <option key={o.key} value={o.key}>{o.label}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          {/* Account select */}
+          <select
+            value={accountFilter}
+            onChange={(e) => setAccountFilter(e.target.value)}
+            className="h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500/40 cursor-pointer max-w-[200px]"
+          >
+            <option value="all">All Accounts</option>
+            <option value="personal">Personal Account</option>
+            {accounts.map(acc => (
+              <option key={acc.id} value={acc.id}>{acc.firm_name} - {acc.account_size}</option>
+            ))}
+          </select>
+
+          {/* Time select */}
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
+            className="h-9 rounded-xl border border-white/10 bg-white/5 px-3 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500/40 cursor-pointer"
+          >
+            {TIME_OPTIONS.map((o) => (
+              <option key={o.key} value={o.key}>{o.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Stats summary label */}

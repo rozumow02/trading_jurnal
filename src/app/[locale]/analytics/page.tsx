@@ -1,17 +1,20 @@
 import { AnalyticsView } from "@/components/analytics/AnalyticsView";
-import { getTrades, getBenchmarks } from "@/lib/trades-api";
+import { getTrades, getBenchmarks, getPropAccounts } from "@/lib/trades-api";
 import type { Benchmarks } from "@/lib/trades-api";
-import type { Trade } from "@/lib/data";
+import type { Trade, PropAccount } from "@/lib/data";
 
 export default async function AnalyticsPage() {
   let trades: Trade[] = [];
+  let accounts: PropAccount[] = [];
   let benchmarks: Benchmarks | null = null;
   try {
     trades = await getTrades();
+    accounts = await getPropAccounts();
     benchmarks = await getBenchmarks();
   } catch (error) {
     console.error("Failed to fetch data:", error);
     trades = [];
+    accounts = [];
   }
 
   return (
@@ -25,7 +28,7 @@ export default async function AnalyticsPage() {
         </p>
       </div>
 
-      <AnalyticsView trades={trades} benchmarks={benchmarks} />
+      <AnalyticsView trades={trades} accounts={accounts} benchmarks={benchmarks} />
     </div>
   );
 }

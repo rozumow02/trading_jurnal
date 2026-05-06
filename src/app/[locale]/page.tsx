@@ -1,19 +1,22 @@
 import { TradesTable } from "@/components/trades/TradesTable";
 import { AddTradeModal } from "@/components/trades/AddTradeModal";
-import { getTrades } from "@/lib/trades-api";
+import { getTrades, getPropAccounts } from "@/lib/trades-api";
 import { Button } from "@/components/ui/button";
-import type { Trade } from "@/lib/data";
+import type { Trade, PropAccount } from "@/lib/data";
 import { getTranslations } from "next-intl/server";
 
 export default async function Home() {
   const t = await getTranslations();
   let trades: Trade[] = [];
+  let accounts: PropAccount[] = [];
 
   try {
     trades = await getTrades();
+    accounts = await getPropAccounts();
   } catch (error) {
-    console.error("Failed to fetch trades:", error);
+    console.error("Failed to fetch data:", error);
     trades = [];
+    accounts = [];
   }
 
   return (
@@ -40,12 +43,12 @@ export default async function Home() {
             </span>
           </Button>
 
-          <AddTradeModal />
+          <AddTradeModal accounts={accounts} />
         </div>
       </div>
 
       {/* Trades Table only */}
-      <TradesTable data={trades} />
+      <TradesTable data={trades} accounts={accounts} />
     </div>
   );
 }

@@ -1,3 +1,15 @@
+export type PropAccount = {
+  id: string;
+  firm_name: string;
+  account_size: number;
+  status: string;
+  profit_target_pct: number;
+  daily_dd_pct: number;
+  max_dd_pct: number;
+  total_payouts: number;
+  created_at: string;
+};
+
 export type Trade = {
   id: number;
   trade_type: number;
@@ -21,6 +33,8 @@ export type Trade = {
   unrealized_pnl_percentage: number | null;
   created_at: string;
   updated_at: string;
+  account_id: string | null;
+  prop_accounts?: PropAccount | null; // For joined queries
 };
 
 export const mockTrades: Trade[] = [

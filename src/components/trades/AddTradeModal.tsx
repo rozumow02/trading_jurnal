@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { createTrade, type TradePayload } from "@/lib/trades-api";
+import type { PropAccount } from "@/lib/data";
 import { useRouter } from "@/i18n/routing";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,9 +30,10 @@ const emptyForm = (): TradePayload => ({
   trade_link: "",
   trade_setup_notes: "",
   trade_type: 1,
+  account_id: "",
 });
 
-export function AddTradeModal() {
+export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
   const t = useTranslations("modal");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TradePayload>(emptyForm());
@@ -54,7 +56,11 @@ export function AddTradeModal() {
     setLoading(true);
     setError(null);
     try {
-      await createTrade(form);
+      const payload = { ...form };
+      if (!payload.account_id) {
+        payload.account_id = null; // Convert empty string to null
+      }
+      await createTrade(payload);
       setOpen(false);
       setForm(emptyForm());
       router.refresh();
@@ -86,6 +92,23 @@ export function AddTradeModal() {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4 py-2 mt-1">
+          {accounts.length > 0 && (
+            <div className="space-y-1.5">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Prop Account</Label>
+              <select
+                name="account_id"
+                value={form.account_id || ""}
+                onChange={handleChange}
+                className="w-full h-9 rounded-md border border-white/10 bg-white/5 px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              >
+                <option value="">-- No Account (Personal) --</option>
+                {accounts.map(acc => (
+                  <option key={acc.id} value={acc.id}>{acc.firm_name} - {acc.account_size}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("symbol")}</Label>
