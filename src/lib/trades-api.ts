@@ -26,6 +26,36 @@ export async function getTrades(): Promise<Trade[]> {
   return data as Trade[];
 }
 
+export type Benchmarks = {
+  series: {
+    BTC?: { date: string; close: number }[];
+    US500?: { date: string; close: number }[];
+  };
+};
+
+export async function getBenchmarks(): Promise<Benchmarks> {
+  const { data, error } = await supabase
+    .from("benchmarks")
+    .select("symbol, date, close")
+    .order("date", { ascending: true });
+
+  const series: Record<string, { date: string; close: number }[]> = {};
+  
+  if (!error && data) {
+    for (const row of data) {
+      if (!series[row.symbol]) {
+        series[row.symbol] = [];
+      }
+      series[row.symbol].push({
+        date: row.date,
+        close: Number(row.close),
+      });
+    }
+  }
+
+  return { series };
+}
+
 // ─── CREATE ──────────────────────────────────────────────────────────────────
 export async function createTrade(payload: TradePayload): Promise<Trade> {
   // Calculate PnL

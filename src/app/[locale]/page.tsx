@@ -1,7 +1,6 @@
 import { TradesTable } from "@/components/trades/TradesTable";
 import { AddTradeModal } from "@/components/trades/AddTradeModal";
 import { getTrades } from "@/lib/trades-api";
-import { mockTrades } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import type { Trade } from "@/lib/data";
 import { getTranslations } from "next-intl/server";
@@ -9,13 +8,12 @@ import { getTranslations } from "next-intl/server";
 export default async function Home() {
   const t = await getTranslations();
   let trades: Trade[] = [];
-  let usingMock = false;
 
   try {
     trades = await getTrades();
-  } catch {
-    trades = mockTrades;
-    usingMock = true;
+  } catch (error) {
+    console.error("Failed to fetch trades:", error);
+    trades = [];
   }
 
   return (
@@ -28,11 +26,6 @@ export default async function Home() {
           </h1>
           <p className="text-muted-foreground text-sm">
             {t("trades.subtitle")}
-            {usingMock && (
-              <span className="ml-2 text-yellow-500 text-xs">
-                [{t("trades.mock")}]
-              </span>
-            )}
           </p>
         </div>
 

@@ -23,25 +23,15 @@ const TIME_OPTIONS: { key: TimeFilter; label: string }[] = [
   { key: "7d", label: "Last 7 Days" },
 ];
 
-interface Benchmarks {
-  series: {
-    BTC?: { date: string; close: number }[];
-    US500?: { date: string; close: number }[];
-  };
-}
+import type { Benchmarks } from "@/lib/trades-api";
 
-export function AnalyticsView({ trades }: { trades: Trade[] }) {
+export function AnalyticsView({ trades, benchmarks }: { trades: Trade[], benchmarks: Benchmarks | null }) {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("total");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
-  const [benchmarks, setBenchmarks] = useState<Benchmarks | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    fetch("/api/benchmarks")
-      .then((r) => r.json())
-      .then(setBenchmarks)
-      .catch(() => {/* silently fail */});
   }, []);
 
   const filtered = useMemo(
