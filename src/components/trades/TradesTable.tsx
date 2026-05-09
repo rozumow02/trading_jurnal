@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Trade } from "@/lib/data";
-import { ExternalLink, Edit2, Trash2, Clock } from "lucide-react";
+import { ExternalLink, Edit2, Trash2, Clock, ImageIcon } from "lucide-react";
 import { deleteTrade } from "@/lib/trades-api";
 import { useRouter } from "@/i18n/routing";
 import { EditTradeModal } from "./EditTradeModal";
@@ -275,16 +275,33 @@ function useColumns(accounts: PropAccount[]): ColumnDef<Trade>[] {
       header: t("link"),
       cell: ({ row }) => {
         const link = row.getValue("trade_link") as string;
-        if (!link) return <span className="text-muted-foreground/40">—</span>;
+        const image = row.original.trade_image;
+        if (!link && !image) return <span className="text-muted-foreground/40">—</span>;
         return (
-          <a
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors p-2 inline-flex rounded-full hover:bg-white/5"
-          >
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          <div className="flex items-center gap-1">
+            {link && (
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors p-2 inline-flex rounded-full hover:bg-white/5"
+                title="TradingView Link"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+            {image && (
+              <a
+                href={image}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors p-2 inline-flex rounded-full hover:bg-blue-500/10"
+                title="View Screenshot"
+              >
+                <ImageIcon className="w-4 h-4" />
+              </a>
+            )}
+          </div>
         );
       },
     },

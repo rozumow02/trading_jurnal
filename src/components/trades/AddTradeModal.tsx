@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Plus, UploadCloud, X, ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { createTrade, type TradePayload } from "@/lib/trades-api";
+import { createClient } from "@supabase/supabase-js";
 import type { PropAccount } from "@/lib/data";
 import { useRouter } from "@/i18n/routing";
 import { buttonVariants } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const emptyForm = (): TradePayload => ({
   trade_setup_notes: "",
   trade_type: 1,
   account_id: "",
+  trade_image: null,
 });
 
 export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
@@ -39,7 +41,13 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
   const [form, setForm] = useState<TradePayload>(emptyForm());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const router = useRouter();
+
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -51,8 +59,50 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
     }));
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Please upload an image file");
+      return;
+    }
+    setUploadingImage(true);
+    setError(null);
+    try {
+      const ext = file.name.split(".").pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${ext}`;
+      const filePath = `trades/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("trade_images")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("trade_images").getPublicUrl(filePath);
+      
+      setForm((prev) => ({ ...prev, trade_image: data.publicUrl }));
+    } catch (err: any) {
+      setError("Image upload failed: " + err.message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) handleImageUpload(file);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.account_id) {
+      setError("Please select an account or wallet.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -91,24 +141,43 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 py-2 mt-1">
-          {accounts.length > 0 && (
-            <div className="space-y-1.5">
-              <Label className="text-xs uppercase tracking-wider text-muted-foreground">Prop Account</Label>
-              <select
-                name="account_id"
-                value={form.account_id || ""}
-                onChange={handleChange}
-                className="w-full h-9 rounded-md border border-white/10 bg-white/5 px-3 py-1 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+          {accounts.length === 0 ? (
+            <div className="py-6 text-center text-muted-foreground bg-white/5 rounded-xl border border-dashed border-white/10">
+              <p className="text-sm">You need to create a Wallet or Prop Account first.</p>
+              <button
+                onClick={() => { setOpen(false); router.push("/wallet"); }}
+                className="mt-4 text-emerald-400 hover:text-emerald-300 underline underline-offset-4 text-sm font-medium transition-colors"
               >
-                <option value="">-- No Account (Personal) --</option>
-                {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id}>{acc.firm_name} - {acc.account_size}</option>
-                ))}
-              </select>
+                Go to Wallet Page
+              </button>
             </div>
-          )}
-
+          ) : (
+            <div className="space-y-1.5">
+              <Label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70 font-bold">Select Account / Wallet *</Label>
+              <div className="relative group">
+                <select
+                  name="account_id"
+                  value={form.account_id || ""}
+                  onChange={handleChange}
+                  required
+                  className="w-full h-11 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all cursor-pointer appearance-none hover:bg-white/[0.06]"
+                >
+                  <option value="" disabled className="bg-[#0A0A0B]">-- Select an account --</option>
+                  {accounts.map(acc => (
+                    <option key={acc.id} value={acc.id} className="bg-[#0A0A0B] py-2">
+                      {acc.account_type === 'prop' ? '🏢' : '💳'} {acc.firm_name} (${acc.account_size.toLocaleString()})
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground group-hover:text-emerald-400 transition-colors">
+                  <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground/50 italic ml-1">Trades must be linked to a specific account for tracking.</p>
+            </div>
+          )} <form onSubmit={handleSubmit} onPaste={handlePaste} className="grid gap-5 py-2 mt-2 max-h-[75vh] overflow-y-auto px-1 scrollbar-hide">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("symbol")}</Label>
@@ -169,6 +238,47 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
               placeholder={t("notesPlaceholder")}
               className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none"
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Screenshot / Image</Label>
+            {form.trade_image ? (
+              <div className="relative rounded-md border border-white/10 overflow-hidden group">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={form.trade_image} alt="Trade setup" className="w-full h-32 object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                <button
+                  type="button"
+                  onClick={() => setForm(p => ({ ...p, trade_image: null }))}
+                  className="absolute top-2 right-2 p-1 bg-black/50 hover:bg-red-500/80 text-white rounded-full backdrop-blur-md transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-white/10 rounded-md bg-white/5 hover:bg-white/10 transition-colors cursor-pointer relative overflow-hidden group">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file);
+                  }}
+                  disabled={uploadingImage}
+                />
+                {uploadingImage ? (
+                  <div className="flex flex-col items-center text-muted-foreground animate-pulse">
+                    <UploadCloud className="w-6 h-6 mb-1" />
+                    <span className="text-xs">Uploading...</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center text-muted-foreground group-hover:text-foreground transition-colors">
+                    <ImageIcon className="w-6 h-6 mb-1" />
+                    <span className="text-xs">Click to upload or Ctrl+V to paste</span>
+                  </div>
+                )}
+              </label>
+            )}
           </div>
 
           {error && <p className="text-red-400 text-sm">{error}</p>}

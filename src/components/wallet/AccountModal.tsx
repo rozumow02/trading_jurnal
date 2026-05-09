@@ -20,6 +20,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    account_type: account?.account_type ?? "prop",
     firm_name: account?.firm_name ?? "",
     account_size: account?.account_size ?? 100000,
     status: account?.status ?? "Phase 1",
@@ -59,21 +60,38 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] bg-[#0A0A0B] border-white/10 text-foreground">
         <DialogHeader>
-          <DialogTitle>{account ? "Edit Account" : "Add Prop Account"}</DialogTitle>
+          <DialogTitle>{account ? "Edit Account" : "Add Account"}</DialogTitle>
           <DialogDescription className="text-muted-foreground text-sm">
-            Configure your prop firm account rules and details.
+            Configure your account details.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label>Account Type</Label>
+            <Select 
+              value={formData.account_type} 
+              onValueChange={(val: "prop" | "personal") => setFormData(p => ({ ...p, account_type: val }))}
+              disabled={!!account} // Don't allow changing type after creation
+            >
+              <SelectTrigger className="bg-white/5 border-white/10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="prop">Prop Firm Challenge / Funded</SelectItem>
+                <SelectItem value="personal">Personal Wallet (Binance, Bybit)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Firm Name</Label>
+              <Label>{formData.account_type === "prop" ? "Firm Name" : "Wallet Name"}</Label>
               <Input
                 name="firm_name"
                 value={formData.firm_name}
                 onChange={handleChange}
-                placeholder="e.g. FTMO"
+                placeholder={formData.account_type === "prop" ? "e.g. FTMO" : "e.g. Binance Spot"}
                 className="bg-white/5 border-white/10"
               />
             </div>
@@ -97,7 +115,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label>Initial Balance ($)</Label>
+            <Label>{formData.account_type === "prop" ? "Initial Balance ($)" : "Current Balance ($)"}</Label>
             <Input
               type="number"
               name="account_size"
@@ -107,40 +125,42 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Target %</Label>
-              <Input
-                type="number"
-                name="profit_target_pct"
-                value={formData.profit_target_pct}
-                onChange={handleChange}
-                className="bg-white/5 border-white/10 font-mono"
-              />
+          {formData.account_type === "prop" && (
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Target %</Label>
+                <Input
+                  type="number"
+                  name="profit_target_pct"
+                  value={formData.profit_target_pct}
+                  onChange={handleChange}
+                  className="bg-white/5 border-white/10 font-mono"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Daily DD %</Label>
+                <Input
+                  type="number"
+                  name="daily_dd_pct"
+                  value={formData.daily_dd_pct}
+                  onChange={handleChange}
+                  className="bg-white/5 border-white/10 font-mono"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Max DD %</Label>
+                <Input
+                  type="number"
+                  name="max_dd_pct"
+                  value={formData.max_dd_pct}
+                  onChange={handleChange}
+                  className="bg-white/5 border-white/10 font-mono"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Daily DD %</Label>
-              <Input
-                type="number"
-                name="daily_dd_pct"
-                value={formData.daily_dd_pct}
-                onChange={handleChange}
-                className="bg-white/5 border-white/10 font-mono"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Max DD %</Label>
-              <Input
-                type="number"
-                name="max_dd_pct"
-                value={formData.max_dd_pct}
-                onChange={handleChange}
-                className="bg-white/5 border-white/10 font-mono"
-              />
-            </div>
-          </div>
+          )}
 
-          {formData.status === "Funded" && (
+          {formData.account_type === "prop" && formData.status === "Funded" && (
             <div className="space-y-2">
               <Label>Total Payouts Received ($)</Label>
               <Input

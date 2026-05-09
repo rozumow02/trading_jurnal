@@ -19,10 +19,11 @@ export function AccountCard({ account, trades }: Props) {
 
   const pnlPercent = (totalPnL / account.account_size) * 100;
   
-  // Progress calculations
-  const targetVal = account.account_size * (account.profit_target_pct / 100);
-  const maxDdVal = account.account_size * (account.max_dd_pct / 100);
-  const dailyDdVal = account.account_size * (account.daily_dd_pct / 100);
+  // Progress calculations (only relevant for Prop Firm)
+  const isProp = account.account_type === "prop";
+  const targetVal = isProp ? account.account_size * (account.profit_target_pct / 100) : 0;
+  const maxDdVal = isProp ? account.account_size * (account.max_dd_pct / 100) : 0;
+  const dailyDdVal = isProp ? account.account_size * (account.daily_dd_pct / 100) : 0;
 
   const isFunded = account.status.toLowerCase() === "funded";
   const isFailed = account.status.toLowerCase() === "failed";
@@ -42,7 +43,7 @@ export function AccountCard({ account, trades }: Props) {
 
   return (
     <Card className="bg-white/[0.02] border-white/5 backdrop-blur-xl relative overflow-hidden group">
-      <div className={`absolute top-0 left-0 w-1 h-full ${isFunded ? "bg-emerald-500" : isFailed ? "bg-red-500" : "bg-blue-500"}`} />
+      <div className={`absolute top-0 left-0 w-1 h-full ${!isProp ? "bg-purple-500" : isFunded ? "bg-emerald-500" : isFailed ? "bg-red-500" : "bg-blue-500"}`} />
       
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
@@ -53,16 +54,22 @@ export function AccountCard({ account, trades }: Props) {
             </CardTitle>
             <p className="text-sm font-mono text-muted-foreground mt-1">{fmtUsd(account.account_size)}</p>
           </div>
-          <Badge 
-            variant="outline" 
-            className={`
-              ${isFunded ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : ""}
-              ${isFailed ? "border-red-500/30 text-red-400 bg-red-500/10" : ""}
-              ${!isFunded && !isFailed ? "border-blue-500/30 text-blue-400 bg-blue-500/10" : ""}
-            `}
-          >
-            {account.status}
-          </Badge>
+          {isProp ? (
+            <Badge 
+              variant="outline" 
+              className={`
+                ${isFunded ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : ""}
+                ${isFailed ? "border-red-500/30 text-red-400 bg-red-500/10" : ""}
+                ${!isFunded && !isFailed ? "border-blue-500/30 text-blue-400 bg-blue-500/10" : ""}
+              `}
+            >
+              {account.status}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="border-purple-500/30 text-purple-400 bg-purple-500/10">
+              Personal
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
@@ -82,49 +89,51 @@ export function AccountCard({ account, trades }: Props) {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {/* Target */}
-          {!isFunded && !isFailed && (
+        {isProp && (
+          <div className="space-y-4">
+            {/* Target */}
+            {!isFunded && !isFailed && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="flex items-center gap-1 text-muted-foreground"><Target className="w-3 h-3" /> Profit Target</span>
+                  <span className="font-mono text-emerald-400">{fmtUsd(Math.max(0, totalPnL))} / {fmtUsd(targetVal)}</span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${targetProgress}%` }} />
+                </div>
+              </div>
+            )}
+
+            {/* Max DD */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground"><Target className="w-3 h-3" /> Profit Target</span>
-                <span className="font-mono text-emerald-400">{fmtUsd(Math.max(0, totalPnL))} / {fmtUsd(targetVal)}</span>
+                <span className="flex items-center gap-1 text-muted-foreground"><TrendingDown className="w-3 h-3" /> Max Drawdown</span>
+                <span className={`font-mono ${maxDdProgress > 80 ? "text-red-400" : "text-amber-400"}`}>
+                  {fmtUsd(Math.abs(Math.min(0, totalPnL)))} / {fmtUsd(maxDdVal)}
+                </span>
               </div>
               <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${targetProgress}%` }} />
+                <div className={`h-full transition-all duration-500 ${maxDdProgress > 80 ? "bg-red-500" : "bg-amber-500"}`} style={{ width: `${maxDdProgress}%` }} />
               </div>
             </div>
-          )}
 
-          {/* Max DD */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs">
-              <span className="flex items-center gap-1 text-muted-foreground"><TrendingDown className="w-3 h-3" /> Max Drawdown</span>
-              <span className={`font-mono ${maxDdProgress > 80 ? "text-red-400" : "text-amber-400"}`}>
-                {fmtUsd(Math.abs(Math.min(0, totalPnL)))} / {fmtUsd(maxDdVal)}
-              </span>
-            </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className={`h-full transition-all duration-500 ${maxDdProgress > 80 ? "bg-red-500" : "bg-amber-500"}`} style={{ width: `${maxDdProgress}%` }} />
+            {/* Daily DD */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="flex items-center gap-1 text-muted-foreground"><AlertTriangle className="w-3 h-3" /> Daily Drawdown</span>
+                <span className={`font-mono ${dailyDdProgress > 80 ? "text-red-400" : "text-amber-400"}`}>
+                  {fmtUsd(Math.abs(Math.min(0, todayPnL)))} / {fmtUsd(dailyDdVal)}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className={`h-full transition-all duration-500 ${dailyDdProgress > 80 ? "bg-red-500" : "bg-amber-500"}`} style={{ width: `${dailyDdProgress}%` }} />
+              </div>
             </div>
           </div>
-
-          {/* Daily DD */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs">
-              <span className="flex items-center gap-1 text-muted-foreground"><AlertTriangle className="w-3 h-3" /> Daily Drawdown</span>
-              <span className={`font-mono ${dailyDdProgress > 80 ? "text-red-400" : "text-amber-400"}`}>
-                {fmtUsd(Math.abs(Math.min(0, todayPnL)))} / {fmtUsd(dailyDdVal)}
-              </span>
-            </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className={`h-full transition-all duration-500 ${dailyDdProgress > 80 ? "bg-red-500" : "bg-amber-500"}`} style={{ width: `${dailyDdProgress}%` }} />
-            </div>
-          </div>
-        </div>
+        )}
       </CardContent>
       
-      {isFunded && (
+      {isProp && isFunded && (
         <CardFooter className="pt-2 pb-4 border-t border-white/5">
           <div className="flex justify-between items-center w-full">
             <span className="text-xs text-muted-foreground">Total Payouts</span>
