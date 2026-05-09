@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { createClient } from "./supabase/server";
 import type { Trade, PropAccount } from "./data";
 
 export type TradePayload = {
@@ -14,10 +14,12 @@ export type TradePayload = {
   trade_setup_notes?: string;
   is_pending?: boolean;
   account_id?: string | null;
+  trade_image?: string | null;
 };
 
 // ─── READ ────────────────────────────────────────────────────────────────────
 export async function getTrades(): Promise<Trade[]> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("trades")
     .select("*, prop_accounts(*)")
@@ -35,6 +37,7 @@ export type Benchmarks = {
 };
 
 export async function getBenchmarks(): Promise<Benchmarks> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("benchmarks")
     .select("symbol, date, close")
@@ -59,6 +62,7 @@ export async function getBenchmarks(): Promise<Benchmarks> {
 
 // ─── PROP ACCOUNTS ───────────────────────────────────────────────────────────
 export async function getPropAccounts(): Promise<PropAccount[]> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("prop_accounts")
     .select("*")
@@ -71,9 +75,12 @@ export async function getPropAccounts(): Promise<PropAccount[]> {
 export async function createPropAccount(
   payload: Omit<PropAccount, "id" | "created_at">
 ): Promise<PropAccount> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
   const { data, error } = await supabase
     .from("prop_accounts")
-    .insert([payload])
+    .insert([{ ...payload, user_id: user?.id }])
     .select()
     .single();
 
@@ -85,6 +92,7 @@ export async function updatePropAccount(
   id: string,
   payload: Partial<PropAccount>
 ): Promise<PropAccount> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("prop_accounts")
     .update(payload)
@@ -97,12 +105,16 @@ export async function updatePropAccount(
 }
 
 export async function deletePropAccount(id: string): Promise<void> {
+  const supabase = await createClient();
   const { error } = await supabase.from("prop_accounts").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
 
 // ─── CREATE ──────────────────────────────────────────────────────────────────
 export async function createTrade(payload: TradePayload): Promise<Trade> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   // Calculate PnL
   const qty = payload.quantity;
   const entry = payload.buy_price;
@@ -113,7 +125,7 @@ export async function createTrade(payload: TradePayload): Promise<Trade> {
 
   const { data, error } = await supabase
     .from("trades")
-    .insert([{ ...payload, pnl_amount, pnl_percentage }])
+    .insert([{ ...payload, pnl_amount, pnl_percentage, user_id: user?.id }])
     .select()
     .single();
 
@@ -126,6 +138,7 @@ export async function updateTrade(
   id: number,
   payload: Partial<TradePayload>,
 ): Promise<Trade> {
+  const supabase = await createClient();
   // Recalculate PnL if price-related fields are present
   let extraFields: Record<string, number> = {};
   const qty = payload.quantity;
@@ -152,6 +165,7 @@ export async function updateTrade(
 
 // ─── DELETE ──────────────────────────────────────────────────────────────────
 export async function deleteTrade(id: number): Promise<void> {
+  const supabase = await createClient();
   const { error } = await supabase.from("trades").delete().eq("id", id);
 
   if (error) throw new Error(error.message);
