@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import * as React from "react";
+import { useTranslations, useFormatter } from "next-intl";
 import type { PropAccount, Trade } from "@/lib/data";
 import { AccountCard } from "./AccountCard";
 import { AccountModal } from "./AccountModal";
@@ -13,7 +14,9 @@ interface Props {
 }
 
 export function AccountsView({ accounts, trades }: Props) {
-  const [modalOpen, setModalOpen] = useState(false);
+  const t = useTranslations();
+  const format = useFormatter();
+  const [modalOpen, setModalOpen] = React.useState(false);
 
   const totalFundedSize = accounts
     .filter(a => a.status === "Funded")
@@ -41,7 +44,7 @@ export function AccountsView({ accounts, trades }: Props) {
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Funded Capital</p>
-            <p className="text-2xl font-bold font-mono text-foreground">${totalFundedSize.toLocaleString()}</p>
+            <p className="text-2xl font-bold font-mono text-foreground">${format.number(totalFundedSize)}</p>
           </div>
         </div>
 
@@ -51,7 +54,7 @@ export function AccountsView({ accounts, trades }: Props) {
           </div>
           <div>
             <p className="text-sm text-emerald-400/80">Total Payouts</p>
-            <p className="text-2xl font-bold font-mono text-emerald-400">${totalPayouts.toLocaleString()}</p>
+            <p className="text-2xl font-bold font-mono text-emerald-400">${format.number(totalPayouts)}</p>
           </div>
         </div>
       </div>

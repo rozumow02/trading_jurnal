@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 import * as React from "react";
 import {
   ColumnDef,
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Trade } from "@/lib/data";
 import { ExternalLink, Edit2, Trash2, Clock, ImageIcon } from "lucide-react";
-import { deleteTrade } from "@/lib/trades-api";
+import { deleteTrade } from "@/lib/trades-mutations";
 import { useRouter } from "@/i18n/routing";
 import { EditTradeModal } from "./EditTradeModal";
 import type { PropAccount } from "@/lib/data";
@@ -74,6 +74,7 @@ function TradeActions({ trade, accounts }: { trade: Trade, accounts: PropAccount
 
 function useColumns(accounts: PropAccount[]): ColumnDef<Trade>[] {
   const t = useTranslations("table");
+  const format = useFormatter();
   return [
     {
       accessorKey: "symbol",
@@ -167,7 +168,7 @@ function useColumns(accounts: PropAccount[]): ColumnDef<Trade>[] {
         const val = parseFloat(row.getValue("buy_price"));
         return (
           <div className="font-mono text-muted-foreground">
-            {val.toLocaleString(undefined, {
+            {format.number(val, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 4,
             })}
@@ -186,7 +187,7 @@ function useColumns(accounts: PropAccount[]): ColumnDef<Trade>[] {
             return (
               <div className="flex flex-col">
                 <span className="font-mono text-amber-400 text-xs">
-                  {trade.current_price.toLocaleString(undefined, {
+                  {format.number(trade.current_price, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 4,
                   })}
@@ -201,7 +202,7 @@ function useColumns(accounts: PropAccount[]): ColumnDef<Trade>[] {
         if (!val) return <span className="text-muted-foreground/40">—</span>;
         return (
           <div className="font-mono text-muted-foreground">
-            {parseFloat(val as string).toLocaleString(undefined, {
+            {format.number(parseFloat(val as string), {
               minimumFractionDigits: 2,
               maximumFractionDigits: 4,
             })}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, UploadCloud, X, ImageIcon } from "lucide-react";
 import { useState } from "react";
-import { createTrade, type TradePayload } from "@/lib/trades-api";
+import { createTrade } from "@/lib/trades-mutations";
+import { type TradePayload } from "@/lib/trades-api";
 import { createClient } from "@supabase/supabase-js";
 import type { PropAccount } from "@/lib/data";
 import { useRouter } from "@/i18n/routing";
@@ -37,6 +38,7 @@ const emptyForm = (): TradePayload => ({
 
 export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
   const t = useTranslations("modal");
+  const format = useFormatter();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<TradePayload>(emptyForm());
   const [loading, setLoading] = useState(false);
@@ -165,7 +167,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
                   <option value="" disabled className="bg-[#0A0A0B]">-- Select an account --</option>
                   {accounts.map(acc => (
                     <option key={acc.id} value={acc.id} className="bg-[#0A0A0B] py-2">
-                      {acc.account_type === 'prop' ? '🏢' : '💳'} {acc.firm_name} (${acc.account_size.toLocaleString()})
+                      {acc.account_type === 'prop' ? '🏢' : '💳'} {acc.firm_name} (${format.number(acc.account_size)})
                     </option>
                   ))}
                 </select>

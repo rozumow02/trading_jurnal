@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Activity, Target, BarChart3 } from "lucide-react";
 import type { Trade } from "@/lib/data";
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 
 interface CalendarViewProps {
   trades: Trade[];
@@ -298,9 +298,9 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-                  <span>Entry: <span className="font-mono text-foreground/70">${parseFloat(trade.buy_price).toLocaleString()}</span></span>
+                  <span>Entry: <span className="font-mono text-foreground/70">${format.number(parseFloat(trade.buy_price))}</span></span>
                   {trade.sell_price && !trade.is_pending && (
-                    <span>Exit: <span className="font-mono text-foreground/70">${parseFloat(trade.sell_price).toLocaleString()}</span></span>
+                    <span>Exit: <span className="font-mono text-foreground/70">${format.number(parseFloat(trade.sell_price))}</span></span>
                   )}
                   <span>Qty: <span className="font-mono text-foreground/70">{parseFloat(trade.quantity)}</span></span>
                   {trade.pnl_percentage !== null && !trade.is_pending && (
@@ -335,8 +335,9 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
   );
 }
 
-export function CalendarView({ trades }: CalendarViewProps) {
+export function CalendarView({ trades }: { trades: Trade[] }) {
   const t = useTranslations("calendar");
+  const format = useFormatter();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());

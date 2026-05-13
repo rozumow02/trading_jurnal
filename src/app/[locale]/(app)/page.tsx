@@ -4,6 +4,8 @@ import { getTrades, getPropAccounts } from "@/lib/trades-api";
 import { Button } from "@/components/ui/button";
 import type { Trade, PropAccount } from "@/lib/data";
 import { getTranslations } from "next-intl/server";
+import { MetricsCards } from "@/components/dashboard/MetricsCards";
+import { PnLChart } from "@/components/dashboard/PnLChart";
 
 export default async function Home() {
   const t = await getTranslations();
@@ -47,7 +49,14 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Trades Table only */}
+      <MetricsCards trades={trades} />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="col-span-1 lg:col-span-3">
+          <PnLChart trades={trades} />
+        </div>
+      </div>
+
       <TradesTable data={trades} accounts={accounts} />
     </div>
   );

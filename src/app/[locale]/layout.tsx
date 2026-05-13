@@ -7,9 +7,6 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { ThemeProvider } from '@/components/theme-provider';
 
-import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
-
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -47,7 +44,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background text-foreground font-sans flex relative overflow-x-hidden">
+      <body className="min-h-screen bg-background text-foreground font-sans" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider
             attribute="class"
@@ -55,13 +52,7 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Sidebar />
-            <div className="flex-1 flex flex-col min-h-screen w-full">
-              <Header />
-              <main className="flex-1 p-6 lg:p-8 ml-[60px] lg:ml-[80px]">
-                {children}
-              </main>
-            </div>
+            {children}
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

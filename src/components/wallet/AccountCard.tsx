@@ -5,6 +5,7 @@ import type { PropAccount, Trade } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, TrendingDown, AlertTriangle, Briefcase, Plus, MoreVertical } from "lucide-react";
+import { useFormatter } from "next-intl";
 
 interface Props {
   account: PropAccount;
@@ -12,6 +13,8 @@ interface Props {
 }
 
 export function AccountCard({ account, trades }: Props) {
+  const format = useFormatter();
+  
   // Compute PnL for this account
   const accountTrades = trades.filter((t) => t.account_id === account.id);
   const totalPnL = accountTrades.reduce((sum, t) => sum + (t.pnl_amount ?? 0), 0);
@@ -39,7 +42,7 @@ export function AccountCard({ account, trades }: Props) {
   const todayPnL = todayTrades.reduce((sum, t) => sum + (t.pnl_amount ?? 0), 0);
   const dailyDdProgress = Math.min(100, Math.max(0, (Math.abs(Math.min(0, todayPnL)) / dailyDdVal) * 100));
 
-  const fmtUsd = (v: number) => `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmtUsd = (v: number) => `$${format.number(v, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <Card className="bg-white/[0.02] border-white/5 backdrop-blur-xl relative overflow-hidden group">

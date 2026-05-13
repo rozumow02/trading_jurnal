@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createPropAccount, updatePropAccount } from "@/lib/trades-api";
+import { createPropAccount, updatePropAccount } from "@/lib/trades-mutations";
 import type { PropAccount } from "@/lib/data";
 
 interface Props {

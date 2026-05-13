@@ -33,10 +33,11 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    await fetch("/auth/signout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+  const handleLogout = () => {
+    // URL-dan locale-ni olish
+    const locale = window.location.pathname.split("/")[1] || "en";
+    // Full reload va signout route-ga yuborish
+    window.location.href = `/${locale}/auth/signout`;
   };
 
   // Get initials from email
