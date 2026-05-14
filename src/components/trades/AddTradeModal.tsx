@@ -82,7 +82,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
       const { data } = supabase.storage.from("trade_images").getPublicUrl(filePath);
       
       setForm((prev) => ({ ...prev, trade_image: data.publicUrl }));
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError("Image upload failed: " + err.message);
     } finally {
       setUploadingImage(false);
@@ -116,7 +116,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
       setOpen(false);
       setForm(emptyForm());
       router.refresh();
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError(err.message ?? "Error");
     } finally {
       setLoading(false);

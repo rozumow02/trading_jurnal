@@ -15,7 +15,7 @@ export function PnLChart({ trades }: PnLChartProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   if (!mounted) return <div className="h-[300px] w-full animate-pulse bg-white/5 rounded-xl border border-white/10" />;
@@ -32,14 +32,15 @@ export function PnLChart({ trades }: PnLChartProps) {
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
-  let cumulative = 0;
-  const chartData = sorted.map((t) => {
-    cumulative += t.pnl_amount ?? 0;
-    return {
+  const chartData = sorted.reduce((acc, t) => {
+    const prev = acc.length > 0 ? acc[acc.length - 1].value : 0;
+    const value = parseFloat((prev + (t.pnl_amount ?? 0)).toFixed(2));
+    acc.push({
       name: new Date(t.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      value: parseFloat(cumulative.toFixed(2)),
-    };
-  });
+      value
+    });
+    return acc;
+  }, [] as { name: string; value: number }[]);
 
   // If no trades, show placeholder
   const xData = chartData.length > 0 ? chartData.map(d => d.name) : ["No data"];
@@ -51,7 +52,7 @@ export function PnLChart({ trades }: PnLChartProps) {
       backgroundColor: isDark ? "rgba(24, 24, 27, 0.9)" : "rgba(255, 255, 255, 0.9)",
       borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
       textStyle: { color: isDark ? "#fff" : "#000" },
-      formatter: (params: any) => {
+      formatter: (params: any) /* eslint-disable-line @typescript-eslint/no-explicit-any */ => {
         const val = params[0].value;
         const sign = val >= 0 ? "+" : "";
         return `

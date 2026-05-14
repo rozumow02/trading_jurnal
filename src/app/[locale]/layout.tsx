@@ -32,7 +32,7 @@ export default async function RootLayout({
   const resolvedParams = await params;
   const { locale } = resolvedParams;
 
-  if (!routing.locales.includes(locale as any)) {
+  if (!routing.locales.includes(locale as any)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     notFound();
   }
 

@@ -327,6 +327,7 @@ export function TradesTable({ data, accounts = [] }: { data: Trade[], accounts?:
     });
   }, [data]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: sortedData,
     columns,

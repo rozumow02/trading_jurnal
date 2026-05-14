@@ -83,7 +83,8 @@ export async function createPropAccount(
   if (!user) throw new Error("Not authenticated");
 
   // account_type ustuni bazada yo'qligi uchun vaqtinchalik olib tashlaymiz
-  const { account_type, ...dbPayload } = payload as any;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { account_type, ...dbPayload } = payload as Record<string, unknown>;
 
   const { data, error } = await supabase
     .from("prop_accounts")
@@ -104,7 +105,8 @@ export async function updatePropAccount(
   if (!user) throw new Error("Not authenticated");
 
   // account_type ustuni bazada yo'qligi uchun vaqtinchalik olib tashlaymiz
-  const { account_type, ...dbPayload } = payload as any;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { account_type, ...dbPayload } = payload as Record<string, unknown>;
 
   const { data, error } = await supabase
     .from("prop_accounts")

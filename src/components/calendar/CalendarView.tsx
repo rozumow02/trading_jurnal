@@ -220,7 +220,7 @@ interface DayDetailPanelProps {
 function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
   const t = useTranslations("calendar");
   const locale = useLocale();
-  const format = useFormatter();
+    const format = useFormatter();
 
   if (!day) return null;
 
@@ -342,7 +342,7 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
 export function CalendarView({ trades }: { trades: Trade[] }) {
   const t = useTranslations("calendar");
   const locale = useLocale();
-  const format = useFormatter();
+    const format = useFormatter();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth());

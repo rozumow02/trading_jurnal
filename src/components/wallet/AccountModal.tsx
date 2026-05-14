@@ -73,7 +73,9 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
             <Label>{t("accountType")}</Label>
             <Select 
               value={formData.account_type} 
-              onValueChange={(val: "prop" | "personal") => setFormData(p => ({ ...p, account_type: val }))}
+              onValueChange={(val: "prop" | "personal" | null) => {
+                if (val) setFormData(p => ({ ...p, account_type: val }));
+              }}
               disabled={!!account} // Don't allow changing type after creation
             >
               <SelectTrigger className="bg-white/5 border-white/10">
@@ -101,7 +103,9 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
               <Label>{t("status")}</Label>
               <Select 
                 value={formData.status} 
-                onValueChange={(val) => setFormData(p => ({ ...p, status: val }))}
+                onValueChange={(val: string | null) => {
+                  if (val) setFormData(p => ({ ...p, status: val }));
+                }}
               >
                 <SelectTrigger className="bg-white/5 border-white/10">
                   <SelectValue />

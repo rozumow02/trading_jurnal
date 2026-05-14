@@ -58,6 +58,7 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
   // Pre-fill form when trade changes
   useEffect(() => {
     if (trade) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({
         symbol: trade.symbol,
         direction: trade.direction,
@@ -73,6 +74,7 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
         account_id: trade.account_id || "",
         trade_image: trade.trade_image || null,
       });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(null);
     }
   }, [trade]);
@@ -109,7 +111,7 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
       const { data } = supabase.storage.from("trade_images").getPublicUrl(filePath);
       
       setForm((prev) => ({ ...prev, trade_image: data.publicUrl }));
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       setError("Image upload failed: " + err.message);
     } finally {
       setUploadingImage(false);

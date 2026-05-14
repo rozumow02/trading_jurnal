@@ -39,7 +39,7 @@ export default function LoginPage() {
         if (error) throw error;
         setSuccess(t("checkEmail"));
       }
-    } catch (err: any) {
+    } catch (err: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       const msg = err.message || "Xatolik yuz berdi";
       if (msg.includes("Invalid login credentials")) {
         setError(t("invalidCredentials"));

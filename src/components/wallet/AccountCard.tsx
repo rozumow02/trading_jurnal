@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { PropAccount, Trade } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, TrendingDown, AlertTriangle, Briefcase, Plus, MoreVertical } from "lucide-react";
+import { Target, TrendingDown, AlertTriangle, Briefcase, MoreVertical } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 
 interface Props {

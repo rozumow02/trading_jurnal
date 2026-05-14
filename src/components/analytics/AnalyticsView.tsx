@@ -33,7 +33,7 @@ export function AnalyticsView({ trades, benchmarks, accounts = [] }: { trades: T
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   const filtered = useMemo

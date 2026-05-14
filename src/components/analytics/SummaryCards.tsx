@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import {  } from "react";
 import { TrendingUp, TrendingDown, Target, Activity, Clock, BarChart3 } from "lucide-react";
 import type { TradeStats } from "@/lib/stats";
 

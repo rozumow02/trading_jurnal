@@ -12,6 +12,7 @@ import type { User } from "@supabase/supabase-js";
 
 export function Header() {
   const t = useTranslations();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
@@ -19,8 +20,12 @@ export function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-  }, []);
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+    };
+    fetchUser();
+  }, [supabase.auth]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -31,7 +36,7 @@ export function Header() {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [supabase.auth]);
 
   const handleLogout = () => {
     // URL-dan locale-ni olish

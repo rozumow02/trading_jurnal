@@ -16,7 +16,8 @@ export function LanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleLanguageChange = (value: string) => {
+  const handleLanguageChange = (value: string | null) => {
+    if (!value) return;
     router.replace(pathname, { locale: value });
   };
 

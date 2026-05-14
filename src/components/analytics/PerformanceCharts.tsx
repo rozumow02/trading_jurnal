@@ -61,7 +61,7 @@ export function PerformanceCharts({ stats, trades, benchmarks }: Props) {
   const barOption = {
     tooltip: {
       trigger: "axis", backgroundColor: tooltipBg, borderColor: tooltipBorder, textStyle: { color: isDark ? "#fff" : "#000" },
-      formatter: (params: any) => {
+      formatter: (params: any) /* eslint-disable-line @typescript-eslint/no-explicit-any */ => {
         const p = params[0];
         const v = p.value as number;
         return `<div style="font-family:monospace;padding:4px"><div style="color:#71717A;margin-bottom:2px">${p.name}</div><div style="color:${v >= 0 ? "#10B981" : "#EF4444"};font-weight:700">${v >= 0 ? "+" : ""}$${Math.abs(v).toFixed(2)}</div></div>`;
@@ -80,8 +80,12 @@ export function PerformanceCharts({ stats, trades, benchmarks }: Props) {
   };
 
   // ── Line: Equity Curve vs Benchmark ──────────────────────────────────────
-  let cumulative = 0;
-  const equityCurve = closedSorted.map((t) => { cumulative += t.pnl_amount ?? 0; return { date: t.entry_date, value: parseFloat(cumulative.toFixed(2)) }; });
+  const equityCurve = closedSorted.reduce((acc, t) => {
+    const prev = acc.length > 0 ? acc[acc.length - 1].value : 0;
+    const value = parseFloat((prev + (t.pnl_amount ?? 0)).toFixed(2));
+    acc.push({ date: t.entry_date, value });
+    return acc;
+  }, [] as { date: string; value: number }[]);
 
   const normalizeToBase = (arr: { date: string; close: number }[]) => {
     if (!arr.length) return [];

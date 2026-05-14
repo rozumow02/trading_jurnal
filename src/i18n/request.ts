@@ -4,7 +4,7 @@ import { routing } from "./routing";
 export default getRequestConfig(async ({ requestLocale }) => {
   let locale = await requestLocale;
 
-  if (!locale || !routing.locales.includes(locale as any)) {
+  if (!locale || !routing.locales.includes(locale as any)) { // eslint-disable-line @typescript-eslint/no-explicit-any
     locale = routing.defaultLocale;
   }
 
