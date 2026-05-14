@@ -82,9 +82,12 @@ export async function createPropAccount(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  // account_type ustuni bazada yo'qligi uchun vaqtinchalik olib tashlaymiz
+  const { account_type, ...dbPayload } = payload as any;
+
   const { data, error } = await supabase
     .from("prop_accounts")
-    .insert([{ ...payload, user_id: user.id }])
+    .insert([{ ...dbPayload, user_id: user.id }])
     .select()
     .single();
 
@@ -100,9 +103,12 @@ export async function updatePropAccount(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  // account_type ustuni bazada yo'qligi uchun vaqtinchalik olib tashlaymiz
+  const { account_type, ...dbPayload } = payload as any;
+
   const { data, error } = await supabase
     .from("prop_accounts")
-    .update(payload)
+    .update(dbPayload)
     .eq("id", id)
     .eq("user_id", user.id)
     .select()

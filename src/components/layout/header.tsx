@@ -106,7 +106,7 @@ export function Header() {
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg transition-colors group"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Chiqish (Logout)</span>
+                <span>{t("header.logout")}</span>
               </button>
             </div>
           )}

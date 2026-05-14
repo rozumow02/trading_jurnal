@@ -145,7 +145,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
 
           {accounts.length === 0 ? (
             <div className="py-6 text-center text-muted-foreground bg-white/5 rounded-xl border border-dashed border-white/10">
-              <p className="text-sm">You need to create a Wallet or Prop Account first.</p>
+              <p className="text-sm">{t("needWallet")}</p>
               <button
                 onClick={() => { setOpen(false); router.push("/wallet"); }}
                 className="mt-4 text-emerald-400 hover:text-emerald-300 underline underline-offset-4 text-sm font-medium transition-colors"
@@ -155,7 +155,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
             </div>
           ) : (
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70 font-bold">Select Account / Wallet *</Label>
+              <Label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70 font-bold">{t("selectAccount")}</Label>
               <div className="relative group">
                 <select
                   name="account_id"
@@ -164,7 +164,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
                   required
                   className="w-full h-11 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/40 transition-all cursor-pointer appearance-none hover:bg-white/[0.06]"
                 >
-                  <option value="" disabled className="bg-[#0A0A0B]">-- Select an account --</option>
+                  <option value="" disabled className="bg-[#0A0A0B]">{t("selectAccountPlaceholder")}</option>
                   {accounts.map(acc => (
                     <option key={acc.id} value={acc.id} className="bg-[#0A0A0B] py-2">
                       {acc.account_type === 'prop' ? '🏢' : '💳'} {acc.firm_name} (${format.number(acc.account_size)})
@@ -177,7 +177,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
                   </svg>
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground/50 italic ml-1">Trades must be linked to a specific account for tracking.</p>
+              <p className="text-[10px] text-muted-foreground/50 italic ml-1">{t("tradesMustBeLinked")}</p>
             </div>
           )} <form onSubmit={handleSubmit} onPaste={handlePaste} className="grid gap-5 py-2 mt-2 max-h-[75vh] overflow-y-auto px-1 scrollbar-hide">
           <div className="grid grid-cols-2 gap-4">
@@ -243,7 +243,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs uppercase tracking-wider text-muted-foreground">Screenshot / Image</Label>
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("screenshotImage")}</Label>
             {form.trade_image ? (
               <div className="relative rounded-md border border-white/10 overflow-hidden group">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -271,12 +271,12 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
                 {uploadingImage ? (
                   <div className="flex flex-col items-center text-muted-foreground animate-pulse">
                     <UploadCloud className="w-6 h-6 mb-1" />
-                    <span className="text-xs">Uploading...</span>
+                    <span className="text-xs">{t("uploading")}</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center text-muted-foreground group-hover:text-foreground transition-colors">
                     <ImageIcon className="w-6 h-6 mb-1" />
-                    <span className="text-xs">Click to upload or Ctrl+V to paste</span>
+                    <span className="text-xs">{t("clickToUpload")}</span>
                   </div>
                 )}
               </label>

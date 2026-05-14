@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TradeStats } from "@/lib/stats";
 import type { Trade } from "@/lib/data";
+import { useTranslations } from "next-intl";
 
 type BenchmarkSeries = { date: string; close: number }[];
 type Benchmarks = { series: { BTC?: BenchmarkSeries; US500?: BenchmarkSeries } } | null;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function PerformanceCharts({ stats, trades, benchmarks }: Props) {
+  const t = useTranslations("analytics");
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const text = isDark ? "#71717A" : "#52525B";
@@ -123,21 +125,21 @@ export function PerformanceCharts({ stats, trades, benchmarks }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Performance Charts</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">{t("performanceCharts")}</h2>
 
       {/* Row 1: two donuts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-white/[0.02] border-white/5 backdrop-blur-xl">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">Win / Loss Ratio</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">{t("winLossRatio")}</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-6 items-center px-5 pb-4">
             <ReactECharts option={winLossOption} style={{ height: 180, width: 180, flexShrink: 0 }} />
             <div className="space-y-2 text-sm">
               {[
-                { label: "Winning", count: stats.wins, color: "bg-emerald-400" },
-                { label: "Losing", count: stats.losses, color: "bg-red-400" },
-                { label: "Break Even", count: stats.breakEven, color: "bg-gray-500" },
+                { label: t("winning"), count: stats.wins, color: "bg-emerald-400" },
+                { label: t("losing"), count: stats.losses, color: "bg-red-400" },
+                { label: t("breakEven"), count: stats.breakEven, color: "bg-gray-500" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
@@ -151,14 +153,14 @@ export function PerformanceCharts({ stats, trades, benchmarks }: Props) {
 
         <Card className="bg-white/[0.02] border-white/5 backdrop-blur-xl">
           <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">Trade Type Distribution</CardTitle>
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">{t("tradeTypeDistribution")}</CardTitle>
           </CardHeader>
           <CardContent className="flex gap-6 items-center px-5 pb-4">
             <ReactECharts option={typeOption} style={{ height: 180, width: 180, flexShrink: 0 }} />
             <div className="space-y-2 text-sm">
               {[
-                { label: "Crypto", count: cryptoCount, color: "bg-amber-400" },
-                { label: "Stock", count: stockCount, color: "bg-violet-400" },
+                { label: t("crypto"), count: cryptoCount, color: "bg-amber-400" },
+                { label: t("stock"), count: stockCount, color: "bg-violet-400" },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full ${item.color}`} />
@@ -174,7 +176,7 @@ export function PerformanceCharts({ stats, trades, benchmarks }: Props) {
       {/* Row 2: Bar chart */}
       <Card className="bg-white/[0.02] border-white/5 backdrop-blur-xl">
         <CardHeader className="pb-0 pt-4 px-5">
-          <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">Individual Trade P&L</CardTitle>
+          <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">{t("individualTradePnl")}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0 px-2 pb-2">
           <ReactECharts option={barOption} style={{ height: 220, width: "100%" }} />
@@ -184,7 +186,7 @@ export function PerformanceCharts({ stats, trades, benchmarks }: Props) {
       {/* Row 3: Benchmark line chart */}
       <Card className="bg-white/[0.02] border-white/5 backdrop-blur-xl">
         <CardHeader className="pb-0 pt-4 px-5">
-          <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">Equity Curve vs Benchmark</CardTitle>
+          <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">{t("equityCurveVsBenchmark")}</CardTitle>
         </CardHeader>
         <CardContent className="pt-0 px-2 pb-2">
           <ReactECharts option={benchmarkOption} style={{ height: 260, width: "100%" }} />

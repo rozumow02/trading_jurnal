@@ -14,7 +14,7 @@ interface Props {
 }
 
 export function AccountsView({ accounts, trades }: Props) {
-  const t = useTranslations();
+  const t = useTranslations("wallet");
   const format = useFormatter();
   const [modalOpen, setModalOpen] = React.useState(false);
 
@@ -33,7 +33,7 @@ export function AccountsView({ accounts, trades }: Props) {
             <Wallet className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Total Prop Accounts</p>
+            <p className="text-sm text-muted-foreground">{t("totalPropAccounts")}</p>
             <p className="text-2xl font-bold font-mono text-foreground">{accounts.length}</p>
           </div>
         </div>
@@ -43,7 +43,7 @@ export function AccountsView({ accounts, trades }: Props) {
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">Funded Capital</p>
+            <p className="text-sm text-muted-foreground">{t("fundedCapital")}</p>
             <p className="text-2xl font-bold font-mono text-foreground">${format.number(totalFundedSize)}</p>
           </div>
         </div>
@@ -53,7 +53,7 @@ export function AccountsView({ accounts, trades }: Props) {
             <span className="text-xl font-bold">$</span>
           </div>
           <div>
-            <p className="text-sm text-emerald-400/80">Total Payouts</p>
+            <p className="text-sm text-emerald-400/80">{t("totalPayouts")}</p>
             <p className="text-2xl font-bold font-mono text-emerald-400">${format.number(totalPayouts)}</p>
           </div>
         </div>
@@ -62,7 +62,7 @@ export function AccountsView({ accounts, trades }: Props) {
       {/* Main Grid */}
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-foreground">Your Accounts</h2>
+          <h2 className="text-xl font-bold text-foreground">{t("yourAccounts")}</h2>
           <Button 
             onClick={() => setModalOpen(true)}
             className="bg-emerald-500 hover:bg-emerald-600 text-white flex items-center gap-2"
@@ -74,8 +74,8 @@ export function AccountsView({ accounts, trades }: Props) {
         {accounts.length === 0 ? (
           <div className="text-center py-20 bg-white/5 border border-white/10 rounded-2xl border-dashed">
             <Wallet className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No accounts found</h3>
-            <p className="text-muted-foreground mb-6">You haven't added any prop firm accounts yet.</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">{t("noAccounts")}</h3>
+            <p className="text-muted-foreground mb-6">{t("noAccountsDesc")}</p>
             <Button onClick={() => setModalOpen(true)} variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10">
               <Plus className="w-4 h-4 mr-2" /> Add Your First Account
             </Button>

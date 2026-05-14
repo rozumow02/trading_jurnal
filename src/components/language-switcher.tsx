@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/routing";
 import {
   Select,
@@ -12,6 +12,7 @@ import {
 
 export function LanguageSwitcher() {
   const locale = useLocale();
+  const t = useTranslations("language");
   const router = useRouter();
   const pathname = usePathname();
 
@@ -25,9 +26,9 @@ export function LanguageSwitcher() {
         <SelectValue placeholder="Language" />
       </SelectTrigger>
       <SelectContent className="bg-background/90 border-white/10 backdrop-blur-xl">
-        <SelectItem value="en">English</SelectItem>
-        <SelectItem value="ru">Russian</SelectItem>
-        <SelectItem value="tk">Turkmen</SelectItem>
+        <SelectItem value="en">{t("en")}</SelectItem>
+        <SelectItem value="ru">{t("ru")}</SelectItem>
+        <SelectItem value="tk">{t("tk")}</SelectItem>
       </SelectContent>
     </Select>
   );

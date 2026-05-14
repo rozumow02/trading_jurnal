@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createPropAccount, updatePropAccount } from "@/lib/trades-mutations";
 import type { PropAccount } from "@/lib/data";
+import { useTranslations } from "next-intl";
 
 interface Props {
   open: boolean;
@@ -18,6 +19,7 @@ interface Props {
 
 export function AccountModal({ open, onOpenChange, account }: Props) {
   const router = useRouter();
+  const t = useTranslations("wallet");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     account_type: account?.account_type ?? "prop",
@@ -68,7 +70,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
 
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <Label>Account Type</Label>
+            <Label>{t("accountType")}</Label>
             <Select 
               value={formData.account_type} 
               onValueChange={(val: "prop" | "personal") => setFormData(p => ({ ...p, account_type: val }))}
@@ -78,8 +80,8 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="prop">Prop Firm Challenge / Funded</SelectItem>
-                <SelectItem value="personal">Personal Wallet (Binance, Bybit)</SelectItem>
+                <SelectItem value="prop">{t("propFirm")}</SelectItem>
+                <SelectItem value="personal">{t("personalWallet")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -96,7 +98,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <Label>{t("status")}</Label>
               <Select 
                 value={formData.status} 
                 onValueChange={(val) => setFormData(p => ({ ...p, status: val }))}
@@ -105,10 +107,10 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Phase 1">Phase 1</SelectItem>
-                  <SelectItem value="Phase 2">Phase 2</SelectItem>
-                  <SelectItem value="Funded">Funded</SelectItem>
-                  <SelectItem value="Failed">Failed</SelectItem>
+                  <SelectItem value="Phase 1">{t("phase1")}</SelectItem>
+                  <SelectItem value="Phase 2">{t("phase2")}</SelectItem>
+                  <SelectItem value="Funded">{t("funded")}</SelectItem>
+                  <SelectItem value="Failed">{t("failed")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -128,7 +130,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
           {formData.account_type === "prop" && (
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label>Target %</Label>
+                <Label>{t("targetPct")}</Label>
                 <Input
                   type="number"
                   name="profit_target_pct"
@@ -138,7 +140,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Daily DD %</Label>
+                <Label>{t("dailyDDPct")}</Label>
                 <Input
                   type="number"
                   name="daily_dd_pct"
@@ -148,7 +150,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Max DD %</Label>
+                <Label>{t("maxDDPct")}</Label>
                 <Input
                   type="number"
                   name="max_dd_pct"
@@ -162,7 +164,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
 
           {formData.account_type === "prop" && formData.status === "Funded" && (
             <div className="space-y-2">
-              <Label>Total Payouts Received ($)</Label>
+              <Label>{t("totalPayoutsReceived")}</Label>
               <Input
                 type="number"
                 name="total_payouts"
@@ -175,7 +177,7 @@ export function AccountModal({ open, onOpenChange, account }: Props) {
         </div>
 
         <div className="flex justify-end gap-3 pt-2 border-t border-white/10">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>{t("cancel")}</Button>
           <Button 
             onClick={handleSave} 
             disabled={loading || !formData.firm_name}

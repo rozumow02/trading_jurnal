@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Activity, Target, BarChart3 } from "lucide-react";
 import type { Trade } from "@/lib/data";
-import { useTranslations, useFormatter } from "next-intl";
+import { useTranslations, useFormatter, useLocale } from "next-intl";
 
 interface CalendarViewProps {
   trades: Trade[];
@@ -218,6 +218,10 @@ interface DayDetailPanelProps {
 }
 
 function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
+  const t = useTranslations("calendar");
+  const locale = useLocale();
+  const format = useFormatter();
+
   if (!day) return null;
 
   return (
@@ -231,10 +235,10 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-lg font-bold text-foreground font-mono">
-              {day.date.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+              {day.date.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}
             </h3>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {day.trades.length} trade{day.trades.length !== 1 ? "s" : ""}
+              {day.trades.length} {day.trades.length !== 1 ? t("trades", { fallback: "trades" }) : t("trade", { fallback: "trade" })}
             </p>
           </div>
           <button
@@ -253,7 +257,7 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
             ? <TrendingUp className="w-4 h-4 text-emerald-400" />
             : <TrendingDown className="w-4 h-4 text-red-400" />
           }
-          <span className="text-sm text-muted-foreground">Day Total:</span>
+          <span className="text-sm text-muted-foreground">{t("dayTotal")}</span>
           <span className={`font-bold font-mono text-lg ml-auto ${day.totalPnL >= 0 ? "text-emerald-400" : "text-red-400"}`}>
             {day.totalPnL >= 0 ? "+" : ""}${Math.abs(day.totalPnL).toFixed(2)}
           </span>
@@ -298,11 +302,11 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
                 </div>
 
                 <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-                  <span>Entry: <span className="font-mono text-foreground/70">${format.number(parseFloat(trade.buy_price))}</span></span>
+                  <span>{t("entry")} <span className="font-mono text-foreground/70">${format.number(parseFloat(trade.buy_price))}</span></span>
                   {trade.sell_price && !trade.is_pending && (
-                    <span>Exit: <span className="font-mono text-foreground/70">${format.number(parseFloat(trade.sell_price))}</span></span>
+                    <span>{t("exit")} <span className="font-mono text-foreground/70">${format.number(parseFloat(trade.sell_price))}</span></span>
                   )}
-                  <span>Qty: <span className="font-mono text-foreground/70">{parseFloat(trade.quantity)}</span></span>
+                  <span>{t("qty")} <span className="font-mono text-foreground/70">{parseFloat(trade.quantity)}</span></span>
                   {trade.pnl_percentage !== null && !trade.is_pending && (
                     <span>%: <span className={`font-mono font-semibold ${isPos ? "text-emerald-400" : "text-red-400"}`}>
                       {pnl >= 0 ? "+" : ""}{(trade.pnl_percentage ?? 0).toFixed(2)}%
@@ -337,6 +341,7 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
 
 export function CalendarView({ trades }: { trades: Trade[] }) {
   const t = useTranslations("calendar");
+  const locale = useLocale();
   const format = useFormatter();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -390,8 +395,8 @@ export function CalendarView({ trades }: { trades: Trade[] }) {
         <div className="p-6 relative">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600" />
-            <h2 className="text-lg font-bold text-foreground font-mono">
-              {MONTH_NAMES[month]} {year}
+            <h2 className="text-lg font-bold text-foreground font-mono capitalize">
+              {new Date(year, month).toLocaleDateString(locale, { month: "long" })} {year}
             </h2>
             {isCurrentMonth && (
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs border border-emerald-500/20 font-medium">
@@ -455,8 +460,8 @@ export function CalendarView({ trades }: { trades: Trade[] }) {
       <div className="rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] overflow-hidden">
         {/* Calendar Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-          <h3 className="text-sm font-bold text-foreground font-mono flex items-center gap-2">
-            <span className="text-emerald-400">{MONTH_NAMES[month]}</span>
+          <h3 className="text-sm font-bold text-foreground font-mono flex items-center gap-2 capitalize">
+            <span className="text-emerald-400">{new Date(year, month).toLocaleDateString(locale, { month: "long" })}</span>
             <span className="text-muted-foreground">{year}</span>
           </h3>
 
@@ -506,10 +511,10 @@ export function CalendarView({ trades }: { trades: Trade[] }) {
 
         {/* Legend */}
         <div className="px-6 py-3 border-t border-white/5 flex items-center gap-4 flex-wrap">
-          <span className="text-xs text-muted-foreground/50 font-medium">Legend:</span>
+          <span className="text-xs text-muted-foreground/50 font-medium">{t("legend")}</span>
           {[
-            { color: "bg-emerald-500/20 border-emerald-500/30 text-emerald-400", label: "Profit" },
-            { color: "bg-red-500/20 border-red-500/30 text-red-400", label: "Loss" },
+            { color: "bg-emerald-500/20 border-emerald-500/30 text-emerald-400", label: t("winning", { fallback: "Profit" }) },
+            { color: "bg-red-500/20 border-red-500/30 text-red-400", label: t("losing", { fallback: "Loss" }) },
             { color: "bg-amber-500/20 border-amber-500/30 text-amber-400", label: "Open / Pending" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-1.5">

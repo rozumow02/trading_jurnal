@@ -5,7 +5,7 @@ import type { PropAccount, Trade } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Target, TrendingDown, AlertTriangle, Briefcase, Plus, MoreVertical } from "lucide-react";
-import { useFormatter } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 interface Props {
   account: PropAccount;
@@ -14,6 +14,7 @@ interface Props {
 
 export function AccountCard({ account, trades }: Props) {
   const format = useFormatter();
+  const t = useTranslations("wallet");
   
   // Compute PnL for this account
   const accountTrades = trades.filter((t) => t.account_id === account.id);
@@ -79,13 +80,13 @@ export function AccountCard({ account, trades }: Props) {
       <CardContent className="space-y-5">
         <div className="flex justify-between items-end">
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Equity</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("equity")}</p>
             <p className={`text-2xl font-mono font-bold ${totalPnL >= 0 ? "text-emerald-400" : "text-red-400"}`}>
               {fmtUsd(currentEquity)}
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Total P/L</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{t("totalPnl")}</p>
             <p className={`text-sm font-mono font-medium ${totalPnL >= 0 ? "text-emerald-400" : "text-red-400"}`}>
               {totalPnL >= 0 ? "+" : ""}{fmtUsd(totalPnL)} ({pnlPercent.toFixed(2)}%)
             </p>
@@ -98,7 +99,7 @@ export function AccountCard({ account, trades }: Props) {
             {!isFunded && !isFailed && (
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs">
-                  <span className="flex items-center gap-1 text-muted-foreground"><Target className="w-3 h-3" /> Profit Target</span>
+                  <span className="flex items-center gap-1 text-muted-foreground"><Target className="w-3 h-3" /> {t("profitTarget")}</span>
                   <span className="font-mono text-emerald-400">{fmtUsd(Math.max(0, totalPnL))} / {fmtUsd(targetVal)}</span>
                 </div>
                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
@@ -110,7 +111,7 @@ export function AccountCard({ account, trades }: Props) {
             {/* Max DD */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground"><TrendingDown className="w-3 h-3" /> Max Drawdown</span>
+                <span className="flex items-center gap-1 text-muted-foreground"><TrendingDown className="w-3 h-3" /> {t("maxDrawdown")}</span>
                 <span className={`font-mono ${maxDdProgress > 80 ? "text-red-400" : "text-amber-400"}`}>
                   {fmtUsd(Math.abs(Math.min(0, totalPnL)))} / {fmtUsd(maxDdVal)}
                 </span>
@@ -123,7 +124,7 @@ export function AccountCard({ account, trades }: Props) {
             {/* Daily DD */}
             <div className="space-y-1.5">
               <div className="flex justify-between text-xs">
-                <span className="flex items-center gap-1 text-muted-foreground"><AlertTriangle className="w-3 h-3" /> Daily Drawdown</span>
+                <span className="flex items-center gap-1 text-muted-foreground"><AlertTriangle className="w-3 h-3" /> {t("dailyDrawdown")}</span>
                 <span className={`font-mono ${dailyDdProgress > 80 ? "text-red-400" : "text-amber-400"}`}>
                   {fmtUsd(Math.abs(Math.min(0, todayPnL)))} / {fmtUsd(dailyDdVal)}
                 </span>
@@ -139,7 +140,7 @@ export function AccountCard({ account, trades }: Props) {
       {isProp && isFunded && (
         <CardFooter className="pt-2 pb-4 border-t border-white/5">
           <div className="flex justify-between items-center w-full">
-            <span className="text-xs text-muted-foreground">Total Payouts</span>
+            <span className="text-xs text-muted-foreground">{t("totalPayouts")}</span>
             <span className="text-sm font-mono font-bold text-emerald-400">{fmtUsd(account.total_payouts)}</span>
           </div>
         </CardFooter>

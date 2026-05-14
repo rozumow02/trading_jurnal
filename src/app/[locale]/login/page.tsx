@@ -4,12 +4,14 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, TrendingUp, Loader2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type AuthMode = "login" | "signup";
 
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const t = useTranslations("auth");
 
   const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
@@ -35,14 +37,14 @@ export default function LoginPage() {
       } else {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        setSuccess("Tasdiqlash xati emailingizga yuborildi. Emailingizni tekshiring!");
+        setSuccess(t("checkEmail"));
       }
     } catch (err: any) {
       const msg = err.message || "Xatolik yuz berdi";
       if (msg.includes("Invalid login credentials")) {
-        setError("Email yoki parol noto'g'ri.");
+        setError(t("invalidCredentials"));
       } else if (msg.includes("User already registered")) {
-        setError("Bu email allaqachon ro'yxatdan o'tgan. Login qiling.");
+        setError(t("alreadyRegistered"));
       } else {
         setError(msg);
       }
@@ -91,7 +93,7 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Trading Journal</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {mode === "login" ? "Hisobingizga kiring" : "Yangi hisob yarating"}
+            {mode === "login" ? t("signInTitle") : t("signUpTitle")}
           </p>
         </div>
 
@@ -108,7 +110,7 @@ export default function LoginPage() {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Kirish
+              {t("login")}
             </button>
             <button
               onClick={() => { setMode("signup"); setError(null); setSuccess(null); }}
@@ -118,7 +120,7 @@ export default function LoginPage() {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Ro&apos;yxatdan o&apos;tish
+              {t("signup")}
             </button>
           </div>
 
@@ -138,13 +140,13 @@ export default function LoginPage() {
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
             )}
-            Google bilan {mode === "login" ? "kirish" : "ro'yxatdan o'tish"}
+            {mode === "login" ? t("googleLogin") : t("googleSignup")}
           </button>
 
           {/* Divider */}
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-white/8" />
-            <span className="text-xs text-muted-foreground/60">yoki</span>
+            <span className="text-xs text-muted-foreground/60">{t("or")}</span>
             <div className="flex-1 h-px bg-white/8" />
           </div>
 
@@ -152,7 +154,7 @@ export default function LoginPage() {
           <form onSubmit={handleEmailAuth} className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70 font-bold">
-                Email
+                {t("email")}
               </label>
               <input
                 type="email"
@@ -166,7 +168,7 @@ export default function LoginPage() {
 
             <div className="space-y-1.5">
               <label className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70 font-bold">
-                Parol
+                {t("password")}
               </label>
               <div className="relative">
                 <input
@@ -209,16 +211,16 @@ export default function LoginPage() {
             >
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {loading
-                ? "Yuklanmoqda..."
+                ? t("loading")
                 : mode === "login"
-                ? "Kirish"
-                : "Hisob yaratish"}
+                ? t("login")
+                : t("signup")}
             </button>
           </form>
         </div>
 
         <p className="text-center text-xs text-muted-foreground/40 mt-6">
-          Supabase Auth bilan himoyalangan 🔒
+          {t("securedBy")} 🔒
         </p>
       </div>
     </div>
