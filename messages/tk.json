@@ -8,7 +8,8 @@
     "calendar": "Senenama",
     "analytics": "Analitika",
     "wallet": "Gapjyk",
-    "reports": "Hasabatlar"
+    "reports": "Hasabatlar",
+    "integration": "MT5 Birleşme"
   },
   "header": {
     "share": "Paýlaş",
@@ -193,5 +194,36 @@
     "en": "Iňlis dili",
     "ru": "Rus dili",
     "tk": "Türkmen dili"
+  },
+  "integration": {
+    "title": "MT5 Birleşmesi",
+    "subtitle": "MetaTrader 5 söwdalaryny hakyky wagtda awtomatiki import ediň.",
+    "howItWorks": "Nädip işleýär",
+    "step1": "Aşakda API açaryny dörediň we göçüriň.",
+    "step2": "JurnalEA.mq5 faýlyny ýükläp, MetaEditor-da açyň.",
+    "step3": "EA parametrlerinde WebhookURL we ApiKey görkeziň.",
+    "step4": "EA-ny islendik grafikde işlediň — söwdalar ýapylandan soň awtomatiki peýda bolar.",
+    "webhookUrl": "Webhook URL",
+    "webhookDesc": "Bu URL-i EA-nyň WebhookURL parametrine ýerleşdiriň.",
+    "copy": "Göçür",
+    "copied": "Göçürildi!",
+    "apiKeys": "API Açarlary",
+    "apiKeysDesc": "Her açar MT5 söwdalaryny hasabyňyza baglanyşdyrýar.",
+    "generateKey": "Açar dörediň",
+    "noKeys": "API açary ýok",
+    "noKeysDesc": "Söwdalary import etmek üçin açar dörediň.",
+    "lastSync": "Soňky sinhronizasiýa",
+    "notConnected": "Heniz birikdirilmedi",
+    "never": "hiç haçan",
+    "justNow": "ýaňy",
+    "minsAgo": "{n} min. öň",
+    "hoursAgo": "{n} s. öň",
+    "daysAgo": "{n} g. öň",
+    "eaSetup": "EA Gurnama Görkezmesi",
+    "ea1": "MT5 → Faýl → Maglumat papkasyny aç → MQL5 → Experts",
+    "ea2": "JurnalEA.mq5-i Experts papkasyna göçüriň.",
+    "ea3": "MetaEditor-da F7 basyp kompilasiýa ediň (säwlik bolmaly däldir).",
+    "ea4": "EA-ny islendik grafikde işlediň. Input-da WebhookURL we ApiKey ýazyň.",
+    "ea5": "MT5 → Gurallar → Sazlamalar → Maslahatçylar bölüminde saýtyňyz üçin WebRequest-e rugsat beriň."
   }
 }

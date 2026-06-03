@@ -9,6 +9,7 @@ import {
   PieChart,
   Wallet,
   FileText,
+  Plug,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
   { icon: PieChart, href: "/analytics" as const, key: "analytics" },
   { icon: Wallet, href: "/wallet" as const, key: "wallet" },
   { icon: FileText, href: "/reports" as const, key: "reports" },
+  { icon: Plug, href: "/integration" as const, key: "integration" },
 ] as const;
 
 export function Sidebar() {

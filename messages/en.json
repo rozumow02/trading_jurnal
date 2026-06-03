@@ -8,7 +8,8 @@
     "calendar": "Calendar",
     "analytics": "Analytics",
     "wallet": "Wallet",
-    "reports": "Reports"
+    "reports": "Reports",
+    "integration": "MT5 Integration"
   },
   "header": {
     "share": "Share",
@@ -193,5 +194,36 @@
     "en": "English",
     "ru": "Russian",
     "tk": "Turkmen"
+  },
+  "integration": {
+    "title": "MT5 Integration",
+    "subtitle": "Automatically import trades from MetaTrader 5 in real-time.",
+    "howItWorks": "How it works",
+    "step1": "Generate an API key below and copy it.",
+    "step2": "Download the JurnalEA.mq5 file and open it in MetaEditor.",
+    "step3": "Set the WebhookURL and ApiKey input parameters in the EA.",
+    "step4": "Attach the EA to any chart — trades will appear automatically when closed.",
+    "webhookUrl": "Webhook URL",
+    "webhookDesc": "Paste this URL into the EA's WebhookURL parameter.",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "apiKeys": "API Keys",
+    "apiKeysDesc": "Each key links incoming MT5 trades to your account.",
+    "generateKey": "Generate Key",
+    "noKeys": "No API keys yet",
+    "noKeysDesc": "Generate a key to start importing trades.",
+    "lastSync": "Last sync",
+    "notConnected": "Not connected yet",
+    "never": "never",
+    "justNow": "just now",
+    "minsAgo": "{n}m ago",
+    "hoursAgo": "{n}h ago",
+    "daysAgo": "{n}d ago",
+    "eaSetup": "EA Setup Instructions",
+    "ea1": "In MetaTrader 5 → File → Open Data Folder → MQL5 → Experts",
+    "ea2": "Copy JurnalEA.mq5 into the Experts folder.",
+    "ea3": "In MetaEditor press F7 to compile the EA (no errors should appear).",
+    "ea4": "Drag the EA onto any chart. In Inputs set WebhookURL and ApiKey.",
+    "ea5": "Enable \"Allow WebRequest\" for your site URL in MT5 → Tools → Options → Expert Advisors."
   }
 }

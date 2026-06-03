@@ -1,0 +1,236 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { Copy, Plus, Trash2, RefreshCw, CheckCircle2, Circle, Plug, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+type ApiKey = {
+  id: string;
+  api_key: string;
+  label: string;
+  last_used: string | null;
+  created_at: string;
+};
+
+export function MT5IntegrationView() {
+  const t = useTranslations("integration");
+  const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [webhookCopied, setWebhookCopied] = useState(false);
+
+  const webhookUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/mt5/webhook`
+      : "/api/mt5/webhook";
+
+  async function loadKeys() {
+    setLoading(true);
+    const res = await fetch("/api/mt5/keys");
+    if (res.ok) {
+      const json = await res.json();
+      setKeys(json.keys ?? []);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => { loadKeys(); }, []);
+
+  async function createKey() {
+    setCreating(true);
+    const res = await fetch("/api/mt5/keys", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ label: "MT5 Account" }),
+    });
+    if (res.ok) {
+      await loadKeys();
+    }
+    setCreating(false);
+  }
+
+  async function deleteKey(id: string) {
+    await fetch(`/api/mt5/keys?id=${id}`, { method: "DELETE" });
+    setKeys((prev) => prev.filter((k) => k.id !== id));
+  }
+
+  function copyText(text: string, id: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
+  function copyWebhook() {
+    navigator.clipboard.writeText(webhookUrl);
+    setWebhookCopied(true);
+    setTimeout(() => setWebhookCopied(false), 2000);
+  }
+
+  function timeSince(dateStr: string | null) {
+    if (!dateStr) return t("never");
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return t("justNow");
+    if (mins < 60) return t("minsAgo", { n: mins });
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return t("hoursAgo", { n: hours });
+    return t("daysAgo", { n: Math.floor(hours / 24) });
+  }
+
+  return (
+    <div className="max-w-2xl space-y-8">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center ring-1 ring-emerald-500/25">
+            <Plug className="w-4 h-4 text-emerald-400" />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        </div>
+        <p className="text-muted-foreground text-sm ml-12">{t("subtitle")}</p>
+      </div>
+
+      {/* How it works */}
+      <div className="rounded-xl border border-white/8 bg-white/2 p-5 space-y-3">
+        <h2 className="text-sm font-medium text-foreground">{t("howItWorks")}</h2>
+        <ol className="space-y-2">
+          {[t("step1"), t("step2"), t("step3"), t("step4")].map((step, i) => (
+            <li key={i} className="flex gap-3 text-sm text-muted-foreground">
+              <span className="w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-400 text-xs flex items-center justify-center shrink-0 mt-0.5 ring-1 ring-emerald-500/20">
+                {i + 1}
+              </span>
+              {step}
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Webhook URL */}
+      <div className="space-y-2">
+        <label className="text-sm font-medium">{t("webhookUrl")}</label>
+        <div className="flex items-center gap-2 rounded-xl border border-white/8 bg-white/2 px-4 py-3">
+          <code className="flex-1 text-sm text-emerald-400 font-mono truncate">{webhookUrl}</code>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="shrink-0 h-8 px-3 text-xs gap-1.5"
+            onClick={copyWebhook}
+          >
+            <Copy className="w-3.5 h-3.5" />
+            {webhookCopied ? t("copied") : t("copy")}
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">{t("webhookDesc")}</p>
+      </div>
+
+      {/* API Keys */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-medium">{t("apiKeys")}</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">{t("apiKeysDesc")}</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={createKey}
+            disabled={creating}
+            className="gap-1.5 h-8 px-3 text-xs bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/20"
+          >
+            {creating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+            {t("generateKey")}
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="rounded-xl border border-white/8 bg-white/2 p-8 flex items-center justify-center">
+            <RefreshCw className="w-5 h-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : keys.length === 0 ? (
+          <div className="rounded-xl border border-white/8 border-dashed bg-white/1 p-8 text-center">
+            <p className="text-sm text-muted-foreground">{t("noKeys")}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">{t("noKeysDesc")}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {keys.map((k) => (
+              <div
+                key={k.id}
+                className="rounded-xl border border-white/8 bg-white/2 px-4 py-3 flex items-center gap-3"
+              >
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-center gap-2">
+                    {k.last_used ? (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    ) : (
+                      <Circle className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
+                    )}
+                    <span className="text-xs font-medium">{k.label}</span>
+                    <span className="text-xs text-muted-foreground/50">
+                      {k.last_used ? `${t("lastSync")}: ${timeSince(k.last_used)}` : t("notConnected")}
+                    </span>
+                  </div>
+                  <code className="text-xs text-muted-foreground font-mono truncate block">
+                    {k.api_key}
+                  </code>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={cn("h-7 px-2.5 text-xs gap-1", copiedId === k.id && "text-emerald-400")}
+                    onClick={() => copyText(k.api_key, k.id)}
+                  >
+                    <Copy className="w-3 h-3" />
+                    {copiedId === k.id ? t("copied") : t("copy")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-muted-foreground hover:text-red-400"
+                    onClick={() => deleteKey(k.id)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* EA Download */}
+      <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/2 px-5 py-4">
+        <div>
+          <p className="text-sm font-medium">JurnalEA.mq5</p>
+          <p className="text-xs text-muted-foreground mt-0.5">MetaTrader 5 Expert Advisor fayli</p>
+        </div>
+        <a
+          href="/ea/JurnalEA.mq5"
+          download="JurnalEA.mq5"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/20 transition-colors"
+        >
+          <Download className="w-3.5 h-3.5" />
+          Download EA
+        </a>
+      </div>
+
+      {/* EA Download instructions */}
+      <div className="rounded-xl border border-white/8 bg-white/2 p-5 space-y-3">
+        <h2 className="text-sm font-medium">{t("eaSetup")}</h2>
+        <ol className="space-y-2">
+          {[t("ea1"), t("ea2"), t("ea3"), t("ea4"), t("ea5")].map((step, i) => (
+            <li key={i} className="flex gap-3 text-sm text-muted-foreground">
+              <span className="w-5 h-5 rounded-full bg-white/5 text-xs flex items-center justify-center shrink-0 mt-0.5 ring-1 ring-white/10">
+                {i + 1}
+              </span>
+              {step}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
