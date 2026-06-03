@@ -1,11 +1,12 @@
 import { TradesTable } from "@/components/trades/TradesTable";
 import { AddTradeModal } from "@/components/trades/AddTradeModal";
+import { RealtimeSync } from "@/components/trades/RealtimeSync";
+import { RiskCalculator } from "@/components/trades/RiskCalculator";
 import { getTrades, getPropAccounts } from "@/lib/trades-api";
 import { Button } from "@/components/ui/button";
 import type { Trade, PropAccount } from "@/lib/data";
 import { getTranslations } from "next-intl/server";
 import { MetricsCards } from "@/components/dashboard/MetricsCards";
-import { PnLChart } from "@/components/dashboard/PnLChart";
 
 export default async function Home() {
   const t = await getTranslations();
@@ -23,6 +24,7 @@ export default async function Home() {
 
   return (
     <div className="w-full max-w-[1400px] mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <RealtimeSync />
       {/* Page Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex flex-col gap-1">
@@ -51,11 +53,7 @@ export default async function Home() {
 
       <MetricsCards trades={trades} />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="col-span-1 lg:col-span-3">
-          <PnLChart trades={trades} />
-        </div>
-      </div>
+      <RiskCalculator />
 
       <TradesTable data={trades} accounts={accounts} />
     </div>

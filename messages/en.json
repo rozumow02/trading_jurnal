@@ -28,7 +28,8 @@
     "table": "Table",
     "monthly": "Monthly",
     "noTrades": "No trades found. Add your first trade!",
-    "mock": "Mock data — add your Supabase credentials for live data"
+    "mock": "Mock data — add your Supabase credentials for live data",
+    "exportCSV": "Export CSV"
   },
   "table": {
     "ticker": "Ticker",
@@ -49,7 +50,10 @@
     "pending": "PENDING",
     "open": "Open",
     "currentPrice": "Current",
-    "unrealized": "Unrealized"
+    "unrealized": "Unrealized",
+    "tags": "Tags",
+    "filterByTag": "Filter by tag",
+    "clearFilter": "Clear"
   },
   "metrics": {
     "totalPnl": "Total P&L",
@@ -57,10 +61,6 @@
     "totalTrades": "Total Trades",
     "allTime": "All time",
     "wins": "{wins}/{total} wins"
-  },
-  "chart": {
-    "equityCurve": "Equity Curve",
-    "noData": "No data"
   },
   "modal": {
     "newTrade": "New Trade",
@@ -91,7 +91,9 @@
     "tradesMustBeLinked": "Trades must be linked to a specific account for tracking.",
     "screenshotImage": "Screenshot / Image",
     "uploading": "Uploading...",
-    "clickToUpload": "Click to upload or Ctrl+V to paste"
+    "clickToUpload": "Click to upload or Ctrl+V to paste",
+    "tags": "Tags",
+    "tagsPlaceholder": "breakout, fomo... (Enter to add)"
   },
   "calendar": {
     "subtitle": "View your trades by day on a monthly calendar.",
@@ -150,7 +152,8 @@
     "dailyDDPct": "Daily DD %",
     "maxDDPct": "Max DD %",
     "totalPayoutsReceived": "Total Payouts Received ($)",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "totalPnl": "Total P&L"
   },
   "analytics": {
     "profitability": "Profitability",

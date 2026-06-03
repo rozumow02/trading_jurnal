@@ -15,7 +15,8 @@ import { Plus, UploadCloud, X, ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { createTrade } from "@/lib/trades-mutations";
 import { type TradePayload } from "@/lib/trades-api";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+import { TagInput } from "./TagInput";
 import type { PropAccount } from "@/lib/data";
 import { useRouter } from "@/i18n/routing";
 import { buttonVariants } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const emptyForm = (): TradePayload => ({
   trade_type: 1,
   account_id: "",
   trade_image: null,
+  tags: [],
 });
 
 export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
@@ -46,10 +48,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
   const [uploadingImage, setUploadingImage] = useState(false);
   const router = useRouter();
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -239,6 +238,15 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
               onChange={handleChange}
               placeholder={t("notesPlaceholder")}
               className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("tags")}</Label>
+            <TagInput
+              tags={form.tags ?? []}
+              onChange={(tags) => setForm((prev) => ({ ...prev, tags }))}
+              placeholder={t("tagsPlaceholder")}
             />
           </div>
 

@@ -14,7 +14,8 @@ import { UploadCloud, X, ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { updateTrade } from "@/lib/trades-mutations";
 import { type TradePayload } from "@/lib/trades-api";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
+import { TagInput } from "./TagInput";
 import { useRouter } from "@/i18n/routing";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -44,16 +45,14 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
     is_pending: false,
     account_id: "",
     trade_image: null,
+    tags: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const router = useRouter();
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = createClient();
 
   // Pre-fill form when trade changes
   useEffect(() => {
@@ -73,6 +72,7 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
         is_pending: trade.is_pending,
         account_id: trade.account_id || "",
         trade_image: trade.trade_image || null,
+        tags: trade.tags ?? [],
       });
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(null);
@@ -319,6 +319,15 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
               onChange={handleChange}
               placeholder={t("notesPlaceholder")}
               className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("tags")}</Label>
+            <TagInput
+              tags={form.tags ?? []}
+              onChange={(tags) => setForm((prev) => ({ ...prev, tags }))}
+              placeholder={t("tagsPlaceholder")}
             />
           </div>
 

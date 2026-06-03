@@ -15,6 +15,7 @@ export type TradePayload = {
   is_pending?: boolean;
   account_id?: string | null;
   trade_image?: string | null;
+  tags?: string[];
 };
 
 // ─── READ ────────────────────────────────────────────────────────────────────

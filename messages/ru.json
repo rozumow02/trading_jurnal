@@ -28,7 +28,8 @@
     "table": "Таблица",
     "monthly": "По месяцам",
     "noTrades": "Сделки не найдены. Добавьте свою первую сделку!",
-    "mock": "Тестовые данные — добавьте ключи Supabase для реальных данных"
+    "mock": "Тестовые данные — добавьте ключи Supabase для реальных данных",
+    "exportCSV": "Экспорт CSV"
   },
   "table": {
     "ticker": "Тикер",
@@ -49,7 +50,10 @@
     "pending": "PENDING",
     "open": "ОТКРЫТО",
     "currentPrice": "Тек. цена",
-    "unrealized": "Нереализ. P&L"
+    "unrealized": "Нереализ. P&L",
+    "tags": "Теги",
+    "filterByTag": "Фильтр по тегу",
+    "clearFilter": "Сбросить"
   },
   "metrics": {
     "totalPnl": "Общий P&L",
@@ -57,10 +61,6 @@
     "totalTrades": "Всего сделок",
     "allTime": "За всё время",
     "wins": "{wins}/{total} прибыльных"
-  },
-  "chart": {
-    "equityCurve": "Кривая капитала (Equity Curve)",
-    "noData": "Нет данных"
   },
   "modal": {
     "newTrade": "Новая сделка",
@@ -91,7 +91,9 @@
     "tradesMustBeLinked": "Сделки должны быть привязаны к определенному аккаунту для отслеживания.",
     "screenshotImage": "Скриншот / Изображение",
     "uploading": "Загрузка...",
-    "clickToUpload": "Нажмите для загрузки или Ctrl+V для вставки"
+    "clickToUpload": "Нажмите для загрузки или Ctrl+V для вставки",
+    "tags": "Теги",
+    "tagsPlaceholder": "пробой, fomo... (Enter для добавления)"
   },
   "calendar": {
     "subtitle": "Просматривайте сделки по дням в ежемесячном календаре.",
@@ -150,7 +152,8 @@
     "dailyDDPct": "Дневная просадка %",
     "maxDDPct": "Макс. просадка %",
     "totalPayoutsReceived": "Всего получено выплат ($)",
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "totalPnl": "Общий P&L"
   },
   "analytics": {
     "profitability": "Прибыльность",

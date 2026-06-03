@@ -28,7 +28,8 @@
     "table": "Tablisa",
     "monthly": "Aýlyk",
     "noTrades": "Söwda tapylmady. Ilkinji söwdaňyzy goşuň!",
-    "mock": "Synag maglumatlary — hakyky maglumatlar üçin Supabase sazlamalaryňyzy birikdiriň"
+    "mock": "Synag maglumatlary — hakyky maglumatlar üçin Supabase sazlamalaryňyzy birikdiriň",
+    "exportCSV": "CSV ýükle"
   },
   "table": {
     "ticker": "Simwol",
@@ -49,7 +50,10 @@
     "pending": "PENDING",
     "open": "AÇYK",
     "currentPrice": "Häzirki baha",
-    "unrealized": "Nerealiz. P&L"
+    "unrealized": "Nerealiz. P&L",
+    "tags": "Tegler",
+    "filterByTag": "Teg boýunça süzgüç",
+    "clearFilter": "Arassala"
   },
   "metrics": {
     "totalPnl": "Jemi P&L",
@@ -57,10 +61,6 @@
     "totalTrades": "Jemi söwdalar",
     "allTime": "Ähli wagt",
     "wins": "{wins}/{total} utuş"
-  },
-  "chart": {
-    "equityCurve": "Kapital egri çyzygy (Equity Curve)",
-    "noData": "Maglumat ýok"
   },
   "modal": {
     "newTrade": "Täze söwda",
@@ -91,7 +91,9 @@
     "tradesMustBeLinked": "Söwdalar yzarlamak üçin belli bir hasaba baglanmalydyr.",
     "screenshotImage": "Skrinşot / Surat",
     "uploading": "Ýüklendiýär...",
-    "clickToUpload": "Ýüklemek üçin basyň ýa-da goýmak üçin Ctrl+V"
+    "clickToUpload": "Ýüklemek üçin basyň ýa-da goýmak üçin Ctrl+V",
+    "tags": "Tegler",
+    "tagsPlaceholder": "döwüş, fomo... (Enter bilen goş)"
   },
   "calendar": {
     "subtitle": "Söwdalaryňyzy aýlyk senenamada günme-gün synlaň.",
@@ -150,7 +152,8 @@
     "dailyDDPct": "Gündelik zyýan %",
     "maxDDPct": "Maksimal zyýan %",
     "totalPayoutsReceived": "Alnan jemi tölegler ($)",
-    "cancel": "Ýatyr"
+    "cancel": "Ýatyr",
+    "totalPnl": "Jemi P&L"
   },
   "analytics": {
     "profitability": "Girdejililik",
