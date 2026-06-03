@@ -35,9 +35,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Combined matchers from both previous middleware/proxy files
-    "/",
-    "/(en|ru|tk)/:path*",
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // API routelarni exclude qilamiz — ular locale prefix kerak emas
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

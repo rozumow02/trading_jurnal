@@ -33,9 +33,12 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // API routelarni to'g'ridan-to'g'ri o'tkazamiz — ular o'z auth logikasiga ega
+  if (pathname.startsWith("/api/")) {
+    return supabaseResponse;
+  }
+
   // Locale-ni to'g'ri aniqlash
-  // pathname = "/" => segments = [] => locale = "en"
-  // pathname = "/en/login" => segments = ["en","login"] => locale = "en"
   const segments = pathname.split("/").filter(Boolean);
   const locale = SUPPORTED_LOCALES.includes(segments[0])
     ? segments[0]
