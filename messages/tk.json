@@ -219,6 +219,8 @@
     "minsAgo": "{n} min. öň",
     "hoursAgo": "{n} s. öň",
     "daysAgo": "{n} g. öň",
+    "noAccount": "— Hasap ýok (baglanyşdyrylmadyk) —",
+    "importAccount": "Import edilen söwdalary hasaba baglanyşdyr",
     "importHistory": "MT5 taryhyny import et",
     "importHistoryDesc": "MT5-den söwda taryhyňyzy eksport edip, şu ýere ýükläň. Gaýtalanmalar awtomatiki geçirilýär.",
     "exportSteps": "MT5-den nädip eksport etmeli:",

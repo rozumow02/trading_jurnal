@@ -12,13 +12,16 @@ type ApiKey = {
   label: string;
   last_used: string | null;
   created_at: string;
+  default_account_id: string | null;
 };
 
 type ImportState = "idle" | "uploading" | "done" | "error";
+type Account = { id: string; firm_name: string; account_type: string };
 
 export function MT5IntegrationView() {
   const t = useTranslations("integration");
   const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -26,6 +29,7 @@ export function MT5IntegrationView() {
   const [importState, setImportState] = useState<ImportState>("idle");
   const [importResult, setImportResult] = useState<{ imported: number; total: number } | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [importAccountId, setImportAccountId] = useState<string>("");
 
   const webhookUrl =
     typeof window !== "undefined"
@@ -38,6 +42,7 @@ export function MT5IntegrationView() {
     if (res.ok) {
       const json = await res.json();
       setKeys(json.keys ?? []);
+      setAccounts(json.accounts ?? []);
     }
     setLoading(false);
   }
@@ -74,6 +79,15 @@ export function MT5IntegrationView() {
     setTimeout(() => setWebhookCopied(false), 2000);
   }
 
+  async function updateKeyAccount(keyId: string, accountId: string) {
+    await fetch(`/api/mt5/keys?id=${keyId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ default_account_id: accountId || null }),
+    });
+    setKeys(prev => prev.map(k => k.id === keyId ? { ...k, default_account_id: accountId || null } : k));
+  }
+
   async function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -84,6 +98,7 @@ export function MT5IntegrationView() {
 
     const form = new FormData();
     form.append("file", file);
+    if (importAccountId) form.append("account_id", importAccountId);
 
     const res = await fetch("/api/mt5/import", { method: "POST", body: form });
     const json = await res.json();
@@ -190,7 +205,7 @@ export function MT5IntegrationView() {
                 key={k.id}
                 className="rounded-xl border border-white/8 bg-white/2 px-4 py-3 flex items-center gap-3"
               >
-                <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex-1 min-w-0 space-y-2">
                   <div className="flex items-center gap-2">
                     {k.last_used ? (
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -205,6 +220,17 @@ export function MT5IntegrationView() {
                   <code className="text-xs text-muted-foreground font-mono truncate block">
                     {k.api_key}
                   </code>
+                  {/* Account selector */}
+                  <select
+                    value={k.default_account_id ?? ""}
+                    onChange={e => updateKeyAccount(k.id, e.target.value)}
+                    className="w-full text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-muted-foreground focus:outline-none focus:border-emerald-500/40"
+                  >
+                    <option value="">{t("noAccount")}</option>
+                    {accounts.map(a => (
+                      <option key={a.id} value={a.id}>{a.firm_name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button
@@ -264,6 +290,21 @@ export function MT5IntegrationView() {
               </li>
             ))}
           </ol>
+        </div>
+
+        {/* Account tanlash */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">{t("importAccount")}</label>
+          <select
+            value={importAccountId}
+            onChange={e => setImportAccountId(e.target.value)}
+            className="w-full text-sm bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-foreground focus:outline-none focus:border-emerald-500/40"
+          >
+            <option value="">{t("noAccount")}</option>
+            {accounts.map(a => (
+              <option key={a.id} value={a.id}>{a.firm_name}</option>
+            ))}
+          </select>
         </div>
 
         {/* Upload zone */}

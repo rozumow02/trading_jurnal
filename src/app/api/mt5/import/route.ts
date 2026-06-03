@@ -7,7 +7,7 @@ const supabaseAdmin = createAdmin(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// ─── MT5 HTML/CSV parser ──────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ParsedTrade = {
   symbol: string;
@@ -23,115 +23,127 @@ type ParsedTrade = {
   position_id: number;
 };
 
-// MT5 "Account Statement" HTML reportini parse qiladi
-// Columns: Open Time | Position | Symbol | Type | Volume | Price | S/L | T/P | Close Time | Close Price | Commission | Swap | Profit
+// ─── Encoding helper ──────────────────────────────────────────────────────────
+
+async function readFileText(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+
+  // UTF-16 LE BOM: FF FE
+  if (bytes[0] === 0xff && bytes[1] === 0xfe) {
+    return new TextDecoder("utf-16le").decode(buffer);
+  }
+  // UTF-16 BE BOM: FE FF
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) {
+    return new TextDecoder("utf-16be").decode(buffer);
+  }
+  // Default UTF-8
+  return new TextDecoder("utf-8").decode(buffer);
+}
+
+// ─── Number helper ────────────────────────────────────────────────────────────
+
+// "10 687.95" → 10687.95  |  "-0.76" → -0.76
+function parseNum(s: string): number {
+  return parseFloat(s.replace(/\s/g, "")) || 0;
+}
+
+function isDate(s: string): boolean {
+  return /^\d{4}[.\-]\d{2}[.\-]\d{2}/.test(s);
+}
+
+function normaliseDate(dt: string): string {
+  if (!dt) return new Date().toISOString();
+  if (dt.includes("T")) return dt;
+  return dt.replace(/\./g, "-").replace(" ", "T");
+}
+
+// ─── HTML Parser ──────────────────────────────────────────────────────────────
+
 function parseHtml(html: string): ParsedTrade[] {
   const trades: ParsedTrade[] = [];
 
-  // Barcha <tr> larni olish
   const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
-  const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
-
   let rowMatch: RegExpExecArray | null;
+
   while ((rowMatch = rowRegex.exec(html)) !== null) {
     const rowHtml = rowMatch[1];
+    const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
     const cells: string[] = [];
 
     let cellMatch: RegExpExecArray | null;
-    const cellRe = new RegExp(cellRegex.source, "gi");
-    while ((cellMatch = cellRe.exec(rowHtml)) !== null) {
-      // HTML taglarni olib, bo'sh joylarni tozalaymiz
+    while ((cellMatch = cellRegex.exec(rowHtml)) !== null) {
       cells.push(cellMatch[1].replace(/<[^>]+>/g, "").trim());
     }
 
-    if (cells.length < 10) continue;
+    if (cells.length < 12) continue;
 
-    const trade = tryParseStatementRow(cells) ?? tryParseDealsRow(cells);
-    if (trade) trades.push(trade);
+    const type = cells[3]?.toLowerCase();
+    if (type !== "buy" && type !== "sell") continue;
+
+    let trade: ParsedTrade | null = null;
+
+    // Format A — "Trade History Report" (PrimaX/standard):
+    // [0]OpenTime [1]PosID [2]Symbol [3]Type [4]Comment [5]Vol [6]OpenPrice
+    // [7]SL [8]TP [9]CloseTime [10]ClosePrice [11]Comm [12]Swap [13]Profit
+    if (cells.length >= 14 && isDate(cells[0]) && isDate(cells[9])) {
+      trade = {
+        symbol:      cells[2].toUpperCase(),
+        direction:   type === "buy" ? "long" : "short",
+        volume:      parseNum(cells[5]),
+        open_price:  parseNum(cells[6]),
+        close_price: parseNum(cells[10]),
+        open_time:   normaliseDate(cells[0]),
+        close_time:  normaliseDate(cells[9]),
+        profit:      parseNum(cells[13]),
+        commission:  parseNum(cells[11]),
+        swap:        parseNum(cells[12]),
+        position_id: parseInt(cells[1]) || Date.now(),
+      };
+    }
+    // Format B — "Account Statement" (no comment column):
+    // [0]OpenTime [1]PosID [2]Symbol [3]Type [4]Vol [5]OpenPrice
+    // [6]SL [7]TP [8]CloseTime [9]ClosePrice [10]Comm [11]Swap [12]Profit
+    else if (cells.length >= 13 && isDate(cells[0]) && isDate(cells[8])) {
+      trade = {
+        symbol:      cells[2].toUpperCase(),
+        direction:   type === "buy" ? "long" : "short",
+        volume:      parseNum(cells[4]),
+        open_price:  parseNum(cells[5]),
+        close_price: parseNum(cells[9]),
+        open_time:   normaliseDate(cells[0]),
+        close_time:  normaliseDate(cells[8]),
+        profit:      parseNum(cells[12]),
+        commission:  parseNum(cells[10]),
+        swap:        parseNum(cells[11]),
+        position_id: parseInt(cells[1]) || Date.now(),
+      };
+    }
+
+    if (trade && trade.volume > 0 && trade.open_price > 0) {
+      trades.push(trade);
+    }
   }
 
   return trades;
 }
 
-// MT5 Statement (positions) format: Open Time | Position | Symbol | Type | Volume | Open Price | S/L | T/P | Close Time | Close Price | Commission | Swap | Profit
-function tryParseStatementRow(cells: string[]): ParsedTrade | null {
-  // Open Time: "2026.06.01 10:30:00" yoki "2026-06-01 10:30:00"
-  if (!/^\d{4}[.\-]\d{2}[.\-]\d{2}/.test(cells[0])) return null;
-  // Close Time ham mavjud bo'lishi kerak (8-indeks)
-  if (!/^\d{4}[.\-]\d{2}[.\-]\d{2}/.test(cells[8])) return null;
+// ─── CSV Parser ───────────────────────────────────────────────────────────────
 
-  const type = cells[3]?.toLowerCase();
-  if (type !== "buy" && type !== "sell") return null;
-
-  const volume     = parseFloat(cells[4]);
-  const openPrice  = parseFloat(cells[5]);
-  const closePrice = parseFloat(cells[9]);
-  const commission = parseFloat(cells[10]) || 0;
-  const swap       = parseFloat(cells[11]) || 0;
-  const profit     = parseFloat(cells[12]);
-  const positionId = parseInt(cells[1]) || 0;
-
-  if (isNaN(volume) || isNaN(openPrice) || isNaN(closePrice) || isNaN(profit)) return null;
-
-  return {
-    symbol:      cells[2].toUpperCase(),
-    direction:   type === "buy" ? "long" : "short",
-    volume,
-    open_price:  openPrice,
-    close_price: closePrice,
-    open_time:   normaliseDate(cells[0]),
-    close_time:  normaliseDate(cells[8]),
-    profit,
-    swap,
-    commission,
-    position_id: positionId,
-  };
-}
-
-// MT5 Deals format (juftlashtirilgan IN+OUT): Time | Deal | Symbol | Type | Direction | Volume | Price | ... | Profit
-function tryParseDealsRow(cells: string[]): ParsedTrade | null {
-  if (!/^\d{4}[.\-]\d{2}[.\-]\d{2}/.test(cells[0])) return null;
-  const direction = cells[4]?.toLowerCase();
-  if (direction !== "out" && direction !== "in/out") return null;
-
-  const type    = cells[3]?.toLowerCase();
-  const volume  = parseFloat(cells[5]);
-  const price   = parseFloat(cells[6]);
-  const profit  = parseFloat(cells[10]) || parseFloat(cells[9]) || 0;
-
-  if (isNaN(volume) || isNaN(price)) return null;
-
-  return {
-    symbol:      cells[2].toUpperCase(),
-    direction:   type === "buy" ? "long" : "short",
-    volume,
-    open_price:  price,
-    close_price: price,
-    open_time:   normaliseDate(cells[0]),
-    close_time:  normaliseDate(cells[0]),
-    profit,
-    swap:        0,
-    commission:  0,
-    position_id: parseInt(cells[1]) || Date.now(),
-  };
-}
-
-// MT5 CSV: # ; Time ; Deal ; Symbol ; Type ; Direction ; Volume ; Price ; Order ; Commission ; Swap ; Profit ; Balance ; Comment
 function parseCsv(text: string): ParsedTrade[] {
   const trades: ParsedTrade[] = [];
   const lines = text.split(/\r?\n/).filter(Boolean);
 
-  // Header qatorini toping
-  const headerIdx = lines.findIndex(l =>
-    /time/i.test(l) && /symbol/i.test(l) && /profit/i.test(l)
+  const headerIdx = lines.findIndex(
+    (l) => /time/i.test(l) && /symbol/i.test(l) && /profit/i.test(l)
   );
   if (headerIdx < 0) return trades;
 
   const sep = lines[headerIdx].includes(";") ? ";" : ",";
-  const headers = lines[headerIdx].split(sep).map(h => h.trim().toLowerCase());
+  const headers = lines[headerIdx].split(sep).map((h) => h.trim().toLowerCase());
 
   const col = (row: string[], name: string) => {
-    const i = headers.findIndex(h => h.includes(name));
+    const i = headers.findIndex((h) => h.includes(name));
     return i >= 0 ? (row[i] ?? "").trim() : "";
   };
 
@@ -141,37 +153,31 @@ function parseCsv(text: string): ParsedTrade[] {
     if (direction !== "out" && direction !== "in/out") continue;
 
     const type   = col(row, "type").toLowerCase();
-    const volume = parseFloat(col(row, "volume"));
-    const price  = parseFloat(col(row, "price"));
-    const profit = parseFloat(col(row, "profit"));
+    const volume = parseNum(col(row, "volume"));
+    const price  = parseNum(col(row, "price"));
+    const profit = parseNum(col(row, "profit"));
     const symbol = col(row, "symbol").toUpperCase();
     const time   = col(row, "time");
     const posId  = parseInt(col(row, "deal") || col(row, "position")) || Date.now();
 
-    if (!symbol || isNaN(volume) || isNaN(price)) continue;
+    if (!symbol || volume <= 0 || price <= 0) continue;
 
     trades.push({
       symbol,
-      direction: type === "buy" ? "long" : "short",
+      direction:   type === "buy" ? "long" : "short",
       volume,
       open_price:  price,
       close_price: price,
       open_time:   normaliseDate(time),
       close_time:  normaliseDate(time),
       profit,
-      swap:        parseFloat(col(row, "swap")) || 0,
-      commission:  parseFloat(col(row, "commission")) || 0,
+      swap:        parseNum(col(row, "swap")),
+      commission:  parseNum(col(row, "commission")),
       position_id: posId,
     });
   }
 
   return trades;
-}
-
-function normaliseDate(dt: string): string {
-  if (!dt) return new Date().toISOString();
-  if (dt.includes("T")) return dt;
-  return dt.replace(/\./g, "-").replace(" ", "T");
 }
 
 // ─── Route handler ────────────────────────────────────────────────────────────
@@ -185,40 +191,42 @@ export async function POST(req: NextRequest) {
   const file = formData.get("file") as File | null;
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
 
-  const text = await file.text();
+  const accountId = (formData.get("account_id") as string | null) || null;
+
+  // Encoding-aware file read
+  const text = await readFileText(file);
   const fileName = file.name.toLowerCase();
 
   let parsed: ParsedTrade[] = [];
   if (fileName.endsWith(".csv")) {
     parsed = parseCsv(text);
   } else {
-    // .htm / .html
     parsed = parseHtml(text);
-    if (parsed.length === 0) {
-      // HTML bo'lishi mumkin lekin CSV formatdagi content bilan
-      parsed = parseCsv(text);
-    }
+    if (parsed.length === 0) parsed = parseCsv(text);
   }
 
   if (parsed.length === 0) {
-    return NextResponse.json({ error: "No trades found in file. Make sure to export as Account Statement (HTML) or CSV from MT5 History tab." }, { status: 422 });
+    return NextResponse.json(
+      { error: "No trades found. Export as 'Account Statement' (HTML) or CSV from MT5 History tab." },
+      { status: 422 }
+    );
   }
 
-  // Supabase ga upsert
-  const rows = parsed.map(t => ({
-    user_id:          user.id,
-    symbol:           t.symbol,
-    direction:        t.direction,
-    quantity:         t.volume,
-    buy_price:        t.direction === "long" ? t.open_price : t.close_price,
-    sell_price:       t.direction === "long" ? t.close_price : t.open_price,
-    entry_date:       t.open_time,
-    exit_date:        t.close_time,
-    pnl_amount:       parseFloat(t.profit.toFixed(2)),
-    pnl_percentage:   t.open_price > 0 ? (t.profit / (t.open_price * t.volume)) * 100 : 0,
-    is_pending:       false,
-    mt5_ticket:       t.position_id,
-    mt5_imported_at:  new Date().toISOString(),
+  const rows = parsed.map((t) => ({
+    user_id:         user.id,
+    symbol:          t.symbol,
+    direction:       t.direction,
+    quantity:        t.volume,
+    buy_price:       t.direction === "long" ? t.open_price  : t.close_price,
+    sell_price:      t.direction === "long" ? t.close_price : t.open_price,
+    entry_date:      t.open_time,
+    exit_date:       t.close_time,
+    pnl_amount:      parseFloat(t.profit.toFixed(2)),
+    pnl_percentage:  t.open_price > 0 ? (t.profit / (t.open_price * t.volume)) * 100 : 0,
+    is_pending:      false,
+    account_id:      accountId,
+    mt5_ticket:      t.position_id,
+    mt5_imported_at: new Date().toISOString(),
   }));
 
   const { data, error } = await supabaseAdmin

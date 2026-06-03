@@ -219,6 +219,8 @@
     "minsAgo": "{n}m ago",
     "hoursAgo": "{n}h ago",
     "daysAgo": "{n}d ago",
+    "noAccount": "— No account (unlinked) —",
+    "importAccount": "Link imported trades to account",
     "importHistory": "Import History from MT5",
     "importHistoryDesc": "Export your trade history from MT5 and upload it here. Duplicate trades are skipped automatically.",
     "exportSteps": "How to export from MT5:",

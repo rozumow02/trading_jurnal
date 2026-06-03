@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   const { data: keyRow, error: keyErr } = await supabaseAdmin
     .from("mt5_api_keys")
-    .select("id, user_id")
+    .select("id, user_id, default_account_id")
     .eq("api_key", apiKey)
     .single();
 
@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
     pnl_percentage,
     trade_setup_notes: comment ?? "",
     is_pending:       false,
+    account_id:       keyRow.default_account_id ?? null,
     mt5_ticket:       ticket,
     mt5_imported_at:  new Date().toISOString(),
   };
