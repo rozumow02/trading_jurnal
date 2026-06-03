@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Copy, Plus, Trash2, RefreshCw, CheckCircle2, Circle, Plug, Download } from "lucide-react";
+import { Copy, Plus, Trash2, RefreshCw, CheckCircle2, Circle, Plug, Download, Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,8 @@ type ApiKey = {
   created_at: string;
 };
 
+type ImportState = "idle" | "uploading" | "done" | "error";
+
 export function MT5IntegrationView() {
   const t = useTranslations("integration");
   const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -21,6 +23,9 @@ export function MT5IntegrationView() {
   const [creating, setCreating] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [webhookCopied, setWebhookCopied] = useState(false);
+  const [importState, setImportState] = useState<ImportState>("idle");
+  const [importResult, setImportResult] = useState<{ imported: number; total: number } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
 
   const webhookUrl =
     typeof window !== "undefined"
@@ -67,6 +72,31 @@ export function MT5IntegrationView() {
     navigator.clipboard.writeText(webhookUrl);
     setWebhookCopied(true);
     setTimeout(() => setWebhookCopied(false), 2000);
+  }
+
+  async function handleFileImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportState("uploading");
+    setImportResult(null);
+    setImportError(null);
+
+    const form = new FormData();
+    form.append("file", file);
+
+    const res = await fetch("/api/mt5/import", { method: "POST", body: form });
+    const json = await res.json();
+
+    if (!res.ok) {
+      setImportState("error");
+      setImportError(json.error ?? "Import failed");
+    } else {
+      setImportState("done");
+      setImportResult({ imported: json.imported, total: json.total });
+    }
+    // input ni reset qilamiz
+    e.target.value = "";
   }
 
   function timeSince(dateStr: string | null) {
@@ -215,6 +245,70 @@ export function MT5IntegrationView() {
           <Download className="w-3.5 h-3.5" />
           Download EA
         </a>
+      </div>
+
+      {/* History Import */}
+      <div className="rounded-xl border border-white/8 bg-white/2 p-5 space-y-4">
+        <div>
+          <h2 className="text-sm font-medium">{t("importHistory")}</h2>
+          <p className="text-xs text-muted-foreground mt-1">{t("importHistoryDesc")}</p>
+        </div>
+
+        {/* Qanday export qilish */}
+        <div className="rounded-lg bg-white/3 border border-white/6 px-4 py-3 space-y-1">
+          <p className="text-xs font-medium text-muted-foreground">{t("exportSteps")}</p>
+          <ol className="space-y-1">
+            {[t("exp1"), t("exp2"), t("exp3")].map((s, i) => (
+              <li key={i} className="text-xs text-muted-foreground/70 flex gap-2">
+                <span className="text-emerald-500/70">{i + 1}.</span>{s}
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* Upload zone */}
+        <label className={cn(
+          "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-8 cursor-pointer transition-colors",
+          importState === "uploading"
+            ? "border-emerald-500/30 bg-emerald-500/5 pointer-events-none"
+            : "border-white/10 hover:border-emerald-500/30 hover:bg-emerald-500/3"
+        )}>
+          {importState === "uploading" ? (
+            <>
+              <RefreshCw className="w-6 h-6 text-emerald-400 animate-spin" />
+              <p className="text-sm text-muted-foreground">{t("importing")}</p>
+            </>
+          ) : importState === "done" && importResult ? (
+            <>
+              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              <p className="text-sm font-medium text-emerald-400">
+                {t("importDone", { imported: importResult.imported, total: importResult.total })}
+              </p>
+              <p className="text-xs text-muted-foreground">{t("importAgain")}</p>
+            </>
+          ) : importState === "error" ? (
+            <>
+              <FileText className="w-6 h-6 text-red-400" />
+              <p className="text-sm text-red-400">{importError}</p>
+              <p className="text-xs text-muted-foreground">{t("tryAgain")}</p>
+            </>
+          ) : (
+            <>
+              <Upload className="w-6 h-6 text-muted-foreground/50" />
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">{t("uploadLabel")}</p>
+                <p className="text-xs text-muted-foreground/50 mt-0.5">.htm · .html · .csv</p>
+              </div>
+            </>
+          )}
+          <input
+            type="file"
+            accept=".htm,.html,.csv"
+            className="hidden"
+            onChange={handleFileImport}
+            disabled={importState === "uploading"}
+          />
+        </label>
       </div>
 
       {/* EA Download instructions */}
