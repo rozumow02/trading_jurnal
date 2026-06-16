@@ -58,6 +58,19 @@ function normaliseDate(dt: string): string {
   return dt.replace(/\./g, "-").replace(" ", "T");
 }
 
+// Ticket topilmaganda savdoning o'zgarmas atributlaridan barqaror (deterministik)
+// ID yasaymiz. Bir xil savdo har doim bir xil son beradi → qayta import qilinganda
+// (user_id, mt5_ticket) unique index dublikatni to'sadi. Date.now() ishlatilsa
+// har import da boshqa son chiqib, dublikat savdo yaratardi.
+function stableTicket(symbol: string, openTime: string, volume: number, price: number): number {
+  const key = `${symbol}|${openTime}|${volume}|${price}`;
+  let h = 0;
+  for (let i = 0; i < key.length; i++) {
+    h = (h * 31 + key.charCodeAt(i)) % Number.MAX_SAFE_INTEGER;
+  }
+  return h;
+}
+
 // ─── HTML Parser ──────────────────────────────────────────────────────────────
 
 function parseHtml(html: string): ParsedTrade[] {
@@ -98,7 +111,7 @@ function parseHtml(html: string): ParsedTrade[] {
         profit:      parseNum(cells[13]),
         commission:  parseNum(cells[11]),
         swap:        parseNum(cells[12]),
-        position_id: parseInt(cells[1]) || Date.now(),
+        position_id: parseInt(cells[1]) || stableTicket(cells[2], normaliseDate(cells[0]), parseNum(cells[5]), parseNum(cells[6])),
       };
     }
     // Format B — "Account Statement" (no comment column):
@@ -116,7 +129,7 @@ function parseHtml(html: string): ParsedTrade[] {
         profit:      parseNum(cells[12]),
         commission:  parseNum(cells[10]),
         swap:        parseNum(cells[11]),
-        position_id: parseInt(cells[1]) || Date.now(),
+        position_id: parseInt(cells[1]) || stableTicket(cells[2], normaliseDate(cells[0]), parseNum(cells[4]), parseNum(cells[5])),
       };
     }
 
@@ -158,7 +171,7 @@ function parseCsv(text: string): ParsedTrade[] {
     const profit = parseNum(col(row, "profit"));
     const symbol = col(row, "symbol").toUpperCase();
     const time   = col(row, "time");
-    const posId  = parseInt(col(row, "deal") || col(row, "position")) || Date.now();
+    const posId  = parseInt(col(row, "deal") || col(row, "position")) || stableTicket(symbol, normaliseDate(time), volume, price);
 
     if (!symbol || volume <= 0 || price <= 0) continue;
 
@@ -192,6 +205,19 @@ export async function POST(req: NextRequest) {
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
 
   const accountId = (formData.get("account_id") as string | null) || null;
+
+  // account_id egaligini tekshiramiz — pastda admin (service-role) client RLS ni
+  // chetlab o'tib yozadi, shuning uchun bu yerda foydalanuvchi shu akkaunt egasi
+  // ekanini RLS-li client bilan tasdiqlash shart (IDOR oldini olish).
+  if (accountId) {
+    const { data: acc } = await supabase
+      .from("prop_accounts")
+      .select("id")
+      .eq("id", accountId)
+      .eq("user_id", user.id)
+      .single();
+    if (!acc) return NextResponse.json({ error: "Invalid account" }, { status: 403 });
+  }
 
   // Encoding-aware file read
   const text = await readFileText(file);
