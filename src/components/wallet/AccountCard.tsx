@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState } from "react";
 import type { PropAccount, Trade } from "@/lib/data";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, TrendingDown, AlertTriangle, Briefcase, MoreVertical } from "lucide-react";
+import { Target, TrendingDown, AlertTriangle, Briefcase, Edit2, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
+import { deletePropAccount } from "@/lib/trades-mutations";
+import { AccountModal } from "./AccountModal";
 
 interface Props {
   account: PropAccount;
@@ -15,9 +18,24 @@ interface Props {
 export function AccountCard({ account, trades }: Props) {
   const format = useFormatter();
   const t = useTranslations("wallet");
-  
+  const router = useRouter();
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   // Compute PnL for this account
   const accountTrades = trades.filter((t) => t.account_id === account.id);
+
+  const handleDelete = async () => {
+    if (!confirm(t("deleteAccountConfirm", { name: account.firm_name, count: accountTrades.length }))) return;
+    setDeleting(true);
+    try {
+      await deletePropAccount(account.id);
+      router.refresh();
+    } catch {
+      alert(t("deleteAccountError"));
+      setDeleting(false);
+    }
+  };
   const totalPnL = accountTrades.reduce((sum, t) => sum + (t.pnl_amount ?? 0), 0);
   const currentEquity = account.account_size + totalPnL;
 
@@ -49,6 +67,25 @@ export function AccountCard({ account, trades }: Props) {
     <Card className="bg-white/[0.02] border-white/5 backdrop-blur-xl relative overflow-hidden group">
       <div className={`absolute top-0 left-0 w-1 h-full ${!isProp ? "bg-purple-500" : isFunded ? "bg-emerald-500" : isFailed ? "bg-red-500" : "bg-blue-500"}`} />
       
+      {/* Edit / Delete actions (hover) */}
+      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => setEditOpen(true)}
+          className="p-1.5 rounded-lg bg-white/5 hover:bg-blue-500/15 text-muted-foreground hover:text-blue-400 transition-colors"
+          title={t("editAccount")}
+        >
+          <Edit2 className="w-3.5 h-3.5" />
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="p-1.5 rounded-lg bg-white/5 hover:bg-red-500/15 text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-50"
+          title={t("deleteAccount")}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div>
@@ -59,9 +96,9 @@ export function AccountCard({ account, trades }: Props) {
             <p className="text-sm font-mono text-muted-foreground mt-1">{fmtUsd(account.account_size)}</p>
           </div>
           {isProp ? (
-            <Badge 
-              variant="outline" 
-              className={`
+            <Badge
+              variant="outline"
+              className={`mr-14
                 ${isFunded ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10" : ""}
                 ${isFailed ? "border-red-500/30 text-red-400 bg-red-500/10" : ""}
                 ${!isFunded && !isFailed ? "border-blue-500/30 text-blue-400 bg-blue-500/10" : ""}
@@ -70,7 +107,7 @@ export function AccountCard({ account, trades }: Props) {
               {account.status}
             </Badge>
           ) : (
-            <Badge variant="outline" className="border-purple-500/30 text-purple-400 bg-purple-500/10">
+            <Badge variant="outline" className="border-purple-500/30 text-purple-400 bg-purple-500/10 mr-14">
               Personal
             </Badge>
           )}
@@ -145,6 +182,8 @@ export function AccountCard({ account, trades }: Props) {
           </div>
         </CardFooter>
       )}
+
+      <AccountModal open={editOpen} onOpenChange={setEditOpen} account={account} />
     </Card>
   );
 }

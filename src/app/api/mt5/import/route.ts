@@ -21,6 +21,8 @@ type ParsedTrade = {
   swap: number;
   commission: number;
   position_id: number;
+  is_pending?: boolean;
+  fee?: number;
 };
 
 // ─── Encoding helper ──────────────────────────────────────────────────────────
@@ -193,6 +195,97 @@ function parseCsv(text: string): ParsedTrade[] {
   return trades;
 }
 
+// ─── Standart JSON parser ─────────────────────────────────────────────────────
+// Sxema: { symbol, direction: "long"|"short", volume|quantity, open_price,
+//          close_price?, open_time, close_time?, profit?, ticket?|position_id? }
+// close_price bo'lmasa → ochiq pozitsiya (is_pending).
+
+function mapStandard(o: Record<string, unknown>): ParsedTrade | null {
+  const symbol = String(o.symbol ?? "").toUpperCase();
+  if (!symbol) return null;
+
+  const rawDir = String(o.direction ?? "").toLowerCase();
+  const direction: "long" | "short" =
+    rawDir === "short" || rawDir === "sell" ? "short" : "long";
+
+  const volume = parseNum(String(o.volume ?? o.quantity ?? ""));
+  const open_price = parseNum(String(o.open_price ?? ""));
+  if (volume <= 0 || open_price <= 0) return null;
+
+  const hasClose = o.close_price !== undefined && o.close_price !== null && String(o.close_price) !== "";
+  const close_price = hasClose ? parseNum(String(o.close_price)) : 0;
+  const open_time = normaliseDate(String(o.open_time ?? ""));
+  const close_time = o.close_time ? normaliseDate(String(o.close_time)) : open_time;
+
+  const hasProfit = o.profit !== undefined && o.profit !== null && String(o.profit) !== "";
+  const profit = hasProfit
+    ? parseNum(String(o.profit))
+    : hasClose
+      ? (direction === "long" ? close_price - open_price : open_price - close_price) * volume
+      : 0;
+
+  const ticketRaw = o.ticket ?? o.position_id;
+  const position_id =
+    ticketRaw !== undefined && ticketRaw !== null && String(ticketRaw) !== ""
+      ? parseInt(String(ticketRaw)) || stableTicket(symbol, open_time, volume, open_price)
+      : stableTicket(symbol, open_time, volume, open_price);
+
+  const swap = parseNum(String(o.swap ?? ""));
+  const commission = parseNum(String(o.commission ?? ""));
+  // fee: aniq `fee` maydoni bo'lsa abs qiymati; bo'lmasa commission+swap'dan xarajat.
+  const hasFee = o.fee !== undefined && o.fee !== null && String(o.fee) !== "";
+  const fee = hasFee ? Math.abs(parseNum(String(o.fee))) : Math.max(0, -(commission + swap));
+
+  return {
+    symbol, direction, volume, open_price, close_price,
+    open_time, close_time, profit,
+    swap, commission, position_id,
+    is_pending: !hasClose,
+    fee,
+  };
+}
+
+function parseStandardJson(text: string): ParsedTrade[] {
+  let data: unknown;
+  try { data = JSON.parse(text); } catch { return []; }
+  const arr = Array.isArray(data)
+    ? data
+    : Array.isArray((data as { trades?: unknown[] })?.trades)
+      ? (data as { trades: unknown[] }).trades
+      : [];
+  const out: ParsedTrade[] = [];
+  for (const item of arr) {
+    if (item && typeof item === "object") {
+      const t = mapStandard(item as Record<string, unknown>);
+      if (t) out.push(t);
+    }
+  }
+  return out;
+}
+
+// Standart CSV: birinchi qator sarlavha bilan (symbol, direction, volume, ...)
+function parseStandardCsv(text: string): ParsedTrade[] {
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 2) return [];
+
+  const sep = lines[0].includes(";") ? ";" : ",";
+  const headers = lines[0].split(sep).map((h) => h.trim().toLowerCase());
+
+  // Standart formatni aniqlaymiz: symbol + open_price + direction ustunlari bo'lishi kerak
+  const has = (name: string) => headers.some((h) => h === name);
+  if (!has("symbol") || !has("open_price") || !has("direction")) return [];
+
+  const out: ParsedTrade[] = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cells = lines[i].split(sep);
+    const row: Record<string, unknown> = {};
+    headers.forEach((h, idx) => { row[h] = (cells[idx] ?? "").trim(); });
+    const t = mapStandard(row);
+    if (t) out.push(t);
+  }
+  return out;
+}
+
 // ─── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -224,36 +317,49 @@ export async function POST(req: NextRequest) {
   const fileName = file.name.toLowerCase();
 
   let parsed: ParsedTrade[] = [];
-  if (fileName.endsWith(".csv")) {
-    parsed = parseCsv(text);
+  if (fileName.endsWith(".json")) {
+    parsed = parseStandardJson(text);
+  } else if (fileName.endsWith(".csv")) {
+    // Avval standart CSV (aniq sarlavhalar), bo'lmasa MT5 CSV
+    parsed = parseStandardCsv(text);
+    if (parsed.length === 0) parsed = parseCsv(text);
   } else {
+    // .htm/.html — MT5 hisobot; bo'lmasa JSON/CSV ga fallback
     parsed = parseHtml(text);
+    if (parsed.length === 0) parsed = parseStandardJson(text);
+    if (parsed.length === 0) parsed = parseStandardCsv(text);
     if (parsed.length === 0) parsed = parseCsv(text);
   }
 
   if (parsed.length === 0) {
     return NextResponse.json(
-      { error: "No trades found. Export as 'Account Statement' (HTML) or CSV from MT5 History tab." },
+      { error: "No trades found. Use MT5 'Account Statement' (HTML/CSV) or the standard CSV/JSON template." },
       { status: 422 }
     );
   }
 
-  const rows = parsed.map((t) => ({
-    user_id:         user.id,
-    symbol:          t.symbol,
-    direction:       t.direction,
-    quantity:        t.volume,
-    buy_price:       t.direction === "long" ? t.open_price  : t.close_price,
-    sell_price:      t.direction === "long" ? t.close_price : t.open_price,
-    entry_date:      t.open_time,
-    exit_date:       t.close_time,
-    pnl_amount:      parseFloat(t.profit.toFixed(2)),
-    pnl_percentage:  t.open_price > 0 ? (t.profit / (t.open_price * t.volume)) * 100 : 0,
-    is_pending:      false,
-    account_id:      accountId,
-    mt5_ticket:      t.position_id,
-    mt5_imported_at: new Date().toISOString(),
-  }));
+  const rows = parsed.map((t) => {
+    // fee: standart `fee` maydonidan yoki commission+swap'dan
+    const fee = t.fee ?? Math.max(0, -((t.commission ?? 0) + (t.swap ?? 0)));
+    return {
+      user_id:         user.id,
+      symbol:          t.symbol,
+      direction:       t.direction,
+      quantity:        t.volume,
+      buy_price:       t.direction === "long" ? t.open_price  : t.close_price,
+      sell_price:      t.is_pending ? null : (t.direction === "long" ? t.close_price : t.open_price),
+      entry_date:      t.open_time,
+      exit_date:       t.is_pending ? null : t.close_time,
+      // Net = yalpi profit - fee. Ochiq pozitsiya — PnL 0. Account-% display vaqtida.
+      pnl_amount:      t.is_pending ? 0 : parseFloat((t.profit - fee).toFixed(2)),
+      pnl_percentage:  0,
+      fee:             parseFloat(fee.toFixed(2)),
+      is_pending:      t.is_pending ?? false,
+      account_id:      accountId,
+      mt5_ticket:      t.position_id,
+      mt5_imported_at: new Date().toISOString(),
+    };
+  });
 
   const { data, error } = await supabaseAdmin
     .from("trades")

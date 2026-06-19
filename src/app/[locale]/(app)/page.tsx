@@ -1,12 +1,10 @@
-import { TradesTable } from "@/components/trades/TradesTable";
 import { AddTradeModal } from "@/components/trades/AddTradeModal";
 import { RealtimeSync } from "@/components/trades/RealtimeSync";
-import { RiskCalculator } from "@/components/trades/RiskCalculator";
 import { getTrades, getPropAccounts } from "@/lib/trades-api";
 import { Button } from "@/components/ui/button";
 import type { Trade, PropAccount } from "@/lib/data";
 import { getTranslations } from "next-intl/server";
-import { MetricsCards } from "@/components/dashboard/MetricsCards";
+import { DashboardClient } from "@/components/dashboard/DashboardClient";
 
 export default async function Home() {
   const t = await getTranslations();
@@ -51,11 +49,7 @@ export default async function Home() {
         </div>
       </div>
 
-      <MetricsCards trades={trades} />
-      
-      <RiskCalculator />
-
-      <TradesTable data={trades} accounts={accounts} />
+      <DashboardClient trades={trades} accounts={accounts} />
     </div>
   );
 }

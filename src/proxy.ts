@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // api/, ea/ (static public files) va rasmlarni exclude qilamiz
-    "/((?!api|ea|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mq5|ico)$).*)",
+    // api/, ea/, templates/ (static public files) va rasm/fayllarni exclude qilamiz
+    "/((?!api|ea|templates|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mq5|csv|json|ico)$).*)",
   ],
 };

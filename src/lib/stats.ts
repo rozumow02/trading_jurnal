@@ -1,5 +1,12 @@
 import type { Trade } from "./data";
 
+// PnL ni account hajmiga nisbatan foiz: Net PnL ÷ account_size × 100.
+// account_size bo'lmasa (savdo account'ga bog'lanmagan) null qaytaradi.
+export function accountPct(pnlAmount: number, accountSize?: number | null): number | null {
+  if (!accountSize || accountSize <= 0) return null;
+  return (pnlAmount / accountSize) * 100;
+}
+
 export type TradeStats = {
   totalPnL: number;
   avgPnL: number;

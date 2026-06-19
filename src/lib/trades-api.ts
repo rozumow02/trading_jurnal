@@ -16,6 +16,7 @@ export type TradePayload = {
   account_id?: string | null;
   trade_image?: string | null;
   tags?: string[];
+  fee?: number;
 };
 
 // ─── READ ────────────────────────────────────────────────────────────────────

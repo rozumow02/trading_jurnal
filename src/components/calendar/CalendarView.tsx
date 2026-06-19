@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown, Activity, Target, BarChart3 } from "lucide-react";
 import type { Trade } from "@/lib/data";
+import { accountPct } from "@/lib/stats";
 import { useTranslations, useFormatter, useLocale } from "next-intl";
 
 interface CalendarViewProps {
@@ -57,18 +58,36 @@ function getDaysInMonth(year: number, month: number): DayData[] {
   return days;
 }
 
+// Sanani LOCAL kalendar bo'yicha "YYYY-MM-DD" kalitga aylantiradi.
+// toISOString() ishlatilsa local yarim tun UTC ga o'tib, UTC+ mintaqalarda
+// sana bir kun oldinga siljiydi (14-savdo 15-katakda ko'rinishi shundan edi).
+function toDateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// entry_date "YYYY-MM-DD" (qo'lda) yoki to'liq timestamp (MT5) bo'lishi mumkin.
+// Date-only string'ni new Date() UTC deb o'qiydi va siljitadi — shuning uchun uni
+// to'g'ridan-to'g'ri ishlatamiz; aks holda local sana kalitiga keltiramiz.
+function tradeDateKey(entryDate: string): string {
+  const dateOnly = /^(\d{4}-\d{2}-\d{2})/.exec(entryDate);
+  if (dateOnly && !entryDate.includes("T")) return dateOnly[1];
+  return toDateKey(new Date(entryDate));
+}
+
 function assignTrades(days: DayData[], trades: Trade[]): DayData[] {
   const map = new Map<string, Trade[]>();
 
   trades.forEach((trade) => {
-    // Use entry_date for calendar placement
-    const key = trade.entry_date; // YYYY-MM-DD
+    const key = tradeDateKey(trade.entry_date);
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(trade);
   });
 
   return days.map((day) => {
-    const key = day.date.toISOString().split("T")[0];
+    const key = toDateKey(day.date);
     const dayTrades = map.get(key) ?? [];
     const totalPnL = dayTrades.reduce((sum, t) => {
       if (t.is_pending && t.unrealized_pnl_amount !== null && t.unrealized_pnl_amount !== undefined) {
@@ -238,7 +257,7 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
               {day.date.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}
             </h3>
             <p className="text-sm text-muted-foreground mt-0.5">
-              {day.trades.length} {day.trades.length !== 1 ? t("trades", { fallback: "trades" }) : t("trade", { fallback: "trade" })}
+              {day.trades.length} {day.trades.length !== 1 ? t("trades") : t("trade")}
             </p>
           </div>
           <button
@@ -307,11 +326,15 @@ function DayDetailPanel({ day, onClose }: DayDetailPanelProps) {
                     <span>{t("exit")} <span className="font-mono text-foreground/70">${format.number(parseFloat(trade.sell_price))}</span></span>
                   )}
                   <span>{t("qty")} <span className="font-mono text-foreground/70">{parseFloat(trade.quantity)}</span></span>
-                  {trade.pnl_percentage !== null && !trade.is_pending && (
-                    <span>%: <span className={`font-mono font-semibold ${isPos ? "text-emerald-400" : "text-red-400"}`}>
-                      {pnl >= 0 ? "+" : ""}{(trade.pnl_percentage ?? 0).toFixed(2)}%
-                    </span></span>
-                  )}
+                  {!trade.is_pending && (() => {
+                    const accPct = accountPct(trade.pnl_amount ?? 0, trade.prop_accounts?.account_size);
+                    if (accPct === null) return null;
+                    return (
+                      <span>%: <span className={`font-mono font-semibold ${isPos ? "text-emerald-400" : "text-red-400"}`}>
+                        {accPct >= 0 ? "+" : ""}{accPct.toFixed(2)}%
+                      </span></span>
+                    );
+                  })()}
                 </div>
 
                 {trade.trade_setup_notes && (

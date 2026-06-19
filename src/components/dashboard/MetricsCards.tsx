@@ -8,9 +8,12 @@ import type { Trade } from "@/lib/data";
 export function MetricsCards({ trades }: { trades: Trade[] }) {
   const t = useTranslations("metrics");
 
-  const totalPnL = trades.reduce((sum, t) => sum + (t.pnl_amount ?? 0), 0);
-  const wins = trades.filter((t) => (t.pnl_amount ?? 0) > 0).length;
-  const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
+  // Ochiq pozitsiyalar (is_pending) PnL/win-rate hisobiga kirmaydi — faqat yopilgan savdolar
+  const closed = trades.filter((t) => !t.is_pending);
+  const pendingCount = trades.length - closed.length;
+  const totalPnL = closed.reduce((sum, t) => sum + (t.pnl_amount ?? 0), 0);
+  const wins = closed.filter((t) => (t.pnl_amount ?? 0) > 0).length;
+  const winRate = closed.length > 0 ? (wins / closed.length) * 100 : 0;
   const isProfit = totalPnL >= 0;
 
   return (
@@ -49,7 +52,7 @@ export function MetricsCards({ trades }: { trades: Trade[] }) {
           <div className="flex items-baseline gap-2">
             <h3 className="text-3xl font-bold font-mono text-foreground tracking-tight">{winRate.toFixed(1)}%</h3>
             <span className="text-xs font-medium text-muted-foreground bg-white/5 px-1.5 py-0.5 rounded">
-              {wins}/{trades.length}
+              {wins}/{closed.length}
             </span>
           </div>
         </CardContent>
@@ -65,8 +68,14 @@ export function MetricsCards({ trades }: { trades: Trade[] }) {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-bold font-mono text-foreground tracking-tight">{trades.length}</h3>
-            <span className="text-xs font-medium text-muted-foreground bg-white/5 px-1.5 py-0.5 rounded">{t("allTime")}</span>
+            <h3 className="text-3xl font-bold font-mono text-foreground tracking-tight">{closed.length}</h3>
+            {pendingCount > 0 ? (
+              <span className="text-xs font-medium text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                +{pendingCount} open
+              </span>
+            ) : (
+              <span className="text-xs font-medium text-muted-foreground bg-white/5 px-1.5 py-0.5 rounded">{t("allTime")}</span>
+            )}
           </div>
         </CardContent>
       </Card>

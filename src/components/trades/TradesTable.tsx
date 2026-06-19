@@ -18,33 +18,39 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Trade } from "@/lib/data";
-import { ExternalLink, Edit2, Trash2, Clock, ImageIcon, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { ExternalLink, Edit2, Trash2, Clock, ImageIcon, Download, ChevronLeft, ChevronRight, ArrowUpDown, ArrowDown, ArrowUp } from "lucide-react";
 import { deleteTrade } from "@/lib/trades-mutations";
+import { accountPct } from "@/lib/stats";
 import { useRouter } from "@/i18n/routing";
 import { EditTradeModal } from "./EditTradeModal";
 import type { PropAccount } from "@/lib/data";
 
 const PAGE_SIZE = 20;
 
-function exportToCSV(trades: Trade[]) {
+function exportToCSV(trades: Trade[], accounts: PropAccount[]) {
   const headers = [
     "Symbol", "Direction", "Type", "Entry Date", "Exit Date",
-    "Entry Price", "Exit Price", "Qty", "PnL ($)", "PnL (%)", "Tags", "Notes",
+    "Entry Price", "Exit Price", "Qty", "PnL ($)", "Fee ($)", "PnL (% acct)", "Tags", "Notes",
   ];
-  const rows = trades.map((t) => [
-    t.symbol,
-    t.direction,
-    t.trade_type === 1 ? "Crypto" : "Other",
-    t.entry_date,
-    t.exit_date || "",
-    t.buy_price,
-    t.sell_price || "",
-    t.quantity,
-    t.is_pending ? "" : (t.pnl_amount?.toFixed(2) ?? ""),
-    t.is_pending ? "" : (t.pnl_percentage?.toFixed(2) ?? ""),
-    (t.tags ?? []).join(";"),
-    t.trade_setup_notes || "",
-  ]);
+  const rows = trades.map((t) => {
+    const accSize = t.prop_accounts?.account_size ?? accounts.find((a) => a.id === t.account_id)?.account_size;
+    const pct = t.is_pending ? null : accountPct(t.pnl_amount ?? 0, accSize);
+    return [
+      t.symbol,
+      t.direction,
+      t.trade_type === 1 ? "Crypto" : "Other",
+      t.entry_date,
+      t.exit_date || "",
+      t.buy_price,
+      t.sell_price || "",
+      t.quantity,
+      t.is_pending ? "" : (t.pnl_amount?.toFixed(2) ?? ""),
+      (t.fee ?? 0).toFixed(2),
+      pct !== null ? pct.toFixed(2) : "",
+      (t.tags ?? []).join(";"),
+      t.trade_setup_notes || "",
+    ];
+  });
   const csv = [headers, ...rows]
     .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
     .join("\n");
@@ -265,13 +271,22 @@ function useColumns(accounts: PropAccount[]): ColumnDef<Trade>[] {
           return <div className="flex flex-col font-mono"><span className="text-amber-400/50 text-xs italic">{t("open")}</span></div>;
         }
         const amount = trade.pnl_amount ?? 0;
-        const pct = trade.pnl_percentage ?? 0;
+        const accSize = trade.prop_accounts?.account_size ?? accounts.find((a) => a.id === trade.account_id)?.account_size;
+        const pct = accountPct(amount, accSize);
+        const fee = trade.fee ?? 0;
         const isPos = amount >= 0;
         const cls = isPos ? "text-pnl-up" : "text-pnl-down";
         return (
           <div className="flex flex-col font-mono">
             <span className={cls}>{isPos ? "+" : ""}${Math.abs(amount).toFixed(2)}</span>
-            <span className={`text-xs ${cls}`}>{isPos ? "+" : ""}{pct.toFixed(2)}%</span>
+            {pct !== null ? (
+              <span className={`text-xs ${cls}`}>{isPos ? "+" : ""}{pct.toFixed(2)}%</span>
+            ) : (
+              <span className="text-xs text-muted-foreground/40">—</span>
+            )}
+            {fee > 0 && (
+              <span className="text-[10px] text-muted-foreground/50">fee: ${fee.toFixed(2)}</span>
+            )}
           </div>
         );
       },
@@ -347,6 +362,8 @@ export function TradesTable({ data, accounts = [] }: { data: Trade[]; accounts?:
   const tTable = useTranslations("table");
   const columns = useColumns(accounts);
   const [activeTag, setActiveTag] = React.useState<string | null>(null);
+  const [activeTicker, setActiveTicker] = React.useState<string>("");
+  const [pnlSort, setPnlSort] = React.useState<"none" | "desc" | "asc">("none");
 
   const allTags = React.useMemo(() => {
     const set = new Set<string>();
@@ -354,15 +371,36 @@ export function TradesTable({ data, accounts = [] }: { data: Trade[]; accounts?:
     return Array.from(set).sort();
   }, [data]);
 
+  const allTickers = React.useMemo(() => {
+    const set = new Set<string>();
+    data.forEach((trade) => trade.symbol && set.add(trade.symbol));
+    return Array.from(set).sort();
+  }, [data]);
+
   const filteredData = React.useMemo(() => {
-    const base = [...data].sort((a, b) => {
-      if (a.is_pending && !b.is_pending) return -1;
-      if (!a.is_pending && b.is_pending) return 1;
-      return 0;
-    });
-    if (!activeTag) return base;
-    return base.filter((t) => (t.tags ?? []).includes(activeTag));
-  }, [data, activeTag]);
+    let base = [...data];
+    if (activeTag) base = base.filter((t) => (t.tags ?? []).includes(activeTag));
+    if (activeTicker) base = base.filter((t) => t.symbol === activeTicker);
+
+    if (pnlSort !== "none") {
+      // P/L bo'yicha sort (pending savdolar oxirida)
+      base.sort((a, b) => {
+        if (a.is_pending && !b.is_pending) return 1;
+        if (!a.is_pending && b.is_pending) return -1;
+        const pa = a.pnl_amount ?? 0;
+        const pb = b.pnl_amount ?? 0;
+        return pnlSort === "desc" ? pb - pa : pa - pb;
+      });
+    } else {
+      // Default: ochiq (pending) savdolar yuqorida
+      base.sort((a, b) => {
+        if (a.is_pending && !b.is_pending) return -1;
+        if (!a.is_pending && b.is_pending) return 1;
+        return 0;
+      });
+    }
+    return base;
+  }, [data, activeTag, activeTicker, pnlSort]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -380,6 +418,38 @@ export function TradesTable({ data, accounts = [] }: { data: Trade[]; accounts?:
 
   return (
     <div className="space-y-4">
+      {/* Ticker filter + P/L sort */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {allTickers.length > 0 && (
+          <>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">
+              {tTable("filterByTicker")}:
+            </span>
+            <select
+              value={activeTicker}
+              onChange={(e) => setActiveTicker(e.target.value)}
+              className="text-xs bg-white/5 border border-white/10 rounded-lg px-2.5 py-1.5 text-muted-foreground focus:outline-none focus:border-emerald-500/40"
+            >
+              <option value="">{tTable("allTickers")}</option>
+              {allTickers.map((sym) => (
+                <option key={sym} value={sym}>{sym}</option>
+              ))}
+            </select>
+          </>
+        )}
+        <button
+          onClick={() => setPnlSort((p) => (p === "none" ? "desc" : p === "desc" ? "asc" : "none"))}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+            pnlSort !== "none"
+              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+              : "bg-white/5 text-muted-foreground border-white/10 hover:text-foreground"
+          }`}
+        >
+          {pnlSort === "desc" ? <ArrowDown className="w-3 h-3" /> : pnlSort === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowUpDown className="w-3 h-3" />}
+          {tTable("sortByPnl")}
+        </button>
+      </div>
+
       {/* Tag filter + Export bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-2 flex-wrap">
@@ -413,7 +483,7 @@ export function TradesTable({ data, accounts = [] }: { data: Trade[]; accounts?:
           )}
         </div>
         <button
-          onClick={() => exportToCSV(filteredData)}
+          onClick={() => exportToCSV(filteredData, accounts)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs text-muted-foreground hover:text-foreground transition-all"
         >
           <Download className="w-3.5 h-3.5" />

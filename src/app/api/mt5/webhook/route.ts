@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { ticket, symbol, type, volume, open_price, close_price, open_time, close_time, profit, comment } = body;
+  const { ticket, symbol, type, volume, open_price, close_price, open_time, close_time, profit, comment, swap, commission } = body;
 
   if (!ticket || !symbol || !type || !volume || !open_price || !close_price || !open_time || !close_time) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -56,9 +56,10 @@ export async function POST(req: NextRequest) {
 
   // 3. MT5 → jurnal formatiga o'tkazish
   const direction = type === "buy" ? "long" : "short";
-  const pnl_amount = Number(profit.toFixed(2));
-  const cost_basis = open_price * volume;
-  const pnl_percentage = cost_basis > 0 ? (pnl_amount / cost_basis) * 100 : 0;
+  // MT5 commission/swap manfiy = xarajat. fee = musbat xarajat; musbat swap kredit bo'lsa fee 0.
+  const fee = Math.max(0, -((commission ?? 0) + (swap ?? 0)));
+  // profit broker bergan yalpi natija; net = yalpi - fee.
+  const pnl_amount = Number((profit - fee).toFixed(2));
 
   const tradeData = {
     user_id:          keyRow.user_id,
@@ -70,7 +71,8 @@ export async function POST(req: NextRequest) {
     entry_date:       normaliseDate(open_time),
     exit_date:        normaliseDate(close_time),
     pnl_amount,
-    pnl_percentage,
+    pnl_percentage:   0,
+    fee:              Number(fee.toFixed(2)),
     trade_setup_notes: comment ?? "",
     is_pending:       false,
     account_id:       keyRow.default_account_id ?? null,

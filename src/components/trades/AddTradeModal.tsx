@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Plus, UploadCloud, X, ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { createTrade } from "@/lib/trades-mutations";
@@ -36,6 +37,8 @@ const emptyForm = (): TradePayload => ({
   account_id: "",
   trade_image: null,
   tags: [],
+  is_pending: false,
+  fee: 0,
 });
 
 export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
@@ -111,6 +114,11 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
       if (!payload.account_id) {
         payload.account_id = null; // Convert empty string to null
       }
+      // Ochiq pozitsiya — exit narx/sana yuborilmaydi, PnL hisoblanmaydi
+      if (payload.is_pending) {
+        payload.sell_price = undefined;
+        payload.exit_date = undefined;
+      }
       await createTrade(payload);
       setOpen(false);
       setForm(emptyForm());
@@ -179,6 +187,17 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
               <p className="text-[10px] text-muted-foreground/50 italic ml-1">{t("tradesMustBeLinked")}</p>
             </div>
           )} <form onSubmit={handleSubmit} onPaste={handlePaste} className="grid gap-5 py-2 mt-2 max-h-[75vh] overflow-y-auto px-1 scrollbar-hide">
+          <div className="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <div className="flex flex-col">
+              <Label className="text-sm font-medium text-foreground">{t("isPending")}</Label>
+              <span className="text-[11px] text-muted-foreground/70">{t("openPositionHint")}</span>
+            </div>
+            <Switch
+              checked={form.is_pending ?? false}
+              onCheckedChange={(checked) => setForm((prev) => ({ ...prev, is_pending: checked }))}
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("symbol")}</Label>
@@ -209,7 +228,7 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("exitPrice")}</Label>
-              <Input name="sell_price" type="number" step="any" placeholder="76760" value={form.sell_price || ""} onChange={handleChange} className="bg-white/5 border-white/10 font-mono" />
+              <Input name="sell_price" type="number" step="any" placeholder="76760" value={form.sell_price || ""} onChange={handleChange} disabled={form.is_pending} className="bg-white/5 border-white/10 font-mono disabled:opacity-40" />
             </div>
           </div>
 
@@ -220,8 +239,13 @@ export function AddTradeModal({ accounts = [] }: { accounts?: PropAccount[] }) {
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("exitDate")}</Label>
-              <Input name="exit_date" type="date" value={form.exit_date} onChange={handleChange} className="bg-white/5 border-white/10" />
+              <Input name="exit_date" type="date" value={form.exit_date} onChange={handleChange} disabled={form.is_pending} className="bg-white/5 border-white/10 disabled:opacity-40" />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("fee")}</Label>
+            <Input name="fee" type="number" step="any" placeholder="3.99" value={form.fee || ""} onChange={handleChange} className="bg-white/5 border-white/10 font-mono" />
           </div>
 
           <div className="space-y-1.5">

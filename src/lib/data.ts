@@ -27,8 +27,9 @@ export type Trade = {
   trade_setup_notes: string;
   ml_notes: string | null;
   is_pending: boolean;
-  pnl_amount: number;
-  pnl_percentage: number;
+  pnl_amount: number;       // NET (gross - fee)
+  pnl_percentage: number;   // deprecated — account-% endi display vaqtida hisoblanadi
+  fee: number;
   current_price: number | null;
   unrealized_pnl_amount: number | null;
   unrealized_pnl_percentage: number | null;

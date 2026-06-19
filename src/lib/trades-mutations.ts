@@ -9,12 +9,16 @@ export async function createTrade(payload: TradePayload): Promise<Trade> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  // Ochiq pozitsiya (hali yopilmagan) — PnL hisoblanmaydi, savdo yopilganda
+  // (EditTradeModal orqali is_pending=false bo'lganda) hisoblanadi.
   const qty = payload.quantity;
   const entry = payload.buy_price;
   const exit = payload.sell_price ?? 0;
-  const pnl_amount =
-    payload.direction === "long" ? (exit - entry) * qty : (entry - exit) * qty;
-  const pnl_percentage = entry > 0 ? (pnl_amount / (entry * qty)) * 100 : 0;
+  const fee = payload.fee ?? 0;
+  const gross = payload.direction === "long" ? (exit - entry) * qty : (entry - exit) * qty;
+  // Net = gross - fee. Account-% display vaqtida hisoblanadi → pnl_percentage = 0.
+  const pnl_amount = payload.is_pending ? 0 : gross - fee;
+  const pnl_percentage = 0;
 
   const { data, error } = await supabase
     .from("trades")
@@ -40,11 +44,15 @@ export async function updateTrade(
   const entry = payload.buy_price;
   const exit = payload.sell_price;
   const dir = payload.direction;
+  const fee = payload.fee ?? 0;
 
-  if (qty !== undefined && entry !== undefined && exit !== undefined && exit > 0 && dir !== undefined) {
-    const pnl_amount = dir === "long" ? (exit - entry) * qty : (entry - exit) * qty;
-    const pnl_percentage = entry > 0 ? (pnl_amount / (entry * qty)) * 100 : 0;
-    extraFields = { pnl_amount, pnl_percentage };
+  if (payload.is_pending === true) {
+    // Ochiq pozitsiyaga o'tkazilsa — PnL nollanadi
+    extraFields = { pnl_amount: 0, pnl_percentage: 0 };
+  } else if (qty !== undefined && entry !== undefined && exit !== undefined && exit > 0 && dir !== undefined) {
+    const gross = dir === "long" ? (exit - entry) * qty : (entry - exit) * qty;
+    // Net = gross - fee; account-% display vaqtida hisoblanadi.
+    extraFields = { pnl_amount: gross - fee, pnl_percentage: 0 };
   }
 
   const { data, error } = await supabase
@@ -124,6 +132,17 @@ export async function deletePropAccount(id: string): Promise<void> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  // Cascade: avval shu account'ga bog'langan barcha savdolarni o'chiramiz,
+  // keyin account'ni. (trades FK xatti-harakati DB da kafolatlanmagani uchun
+  // ilova darajasida ishonchli o'chiramiz.)
+  const { error: tradesErr } = await supabase
+    .from("trades")
+    .delete()
+    .eq("account_id", id)
+    .eq("user_id", user.id);
+
+  if (tradesErr) throw new Error(tradesErr.message);
 
   const { error } = await supabase
     .from("prop_accounts")

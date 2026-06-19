@@ -46,6 +46,7 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
     account_id: "",
     trade_image: null,
     tags: [],
+    fee: 0,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -73,6 +74,7 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
         account_id: trade.account_id || "",
         trade_image: trade.trade_image || null,
         tags: trade.tags ?? [],
+        fee: trade.fee ?? 0,
       });
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(null);
@@ -295,6 +297,19 @@ export function EditTradeModal({ trade, open, onClose, accounts = [] }: EditTrad
                 className="bg-white/5 border-white/10"
               />
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs uppercase tracking-wider text-muted-foreground">{t("fee")}</Label>
+            <Input
+              name="fee"
+              type="number"
+              step="any"
+              placeholder="3.99"
+              value={form.fee || ""}
+              onChange={handleChange}
+              className="bg-white/5 border-white/10 font-mono"
+            />
           </div>
 
           {/* Trade Link */}

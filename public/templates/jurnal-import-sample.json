@@ -1,0 +1,34 @@
+[
+  {
+    "symbol": "EURUSD",
+    "direction": "long",
+    "volume": 0.10,
+    "open_price": 1.08500,
+    "close_price": 1.08750,
+    "open_time": "2026-06-14T09:30:00",
+    "close_time": "2026-06-14T14:00:00",
+    "profit": 25.00,
+    "fee": 0.80,
+    "ticket": 1001
+  },
+  {
+    "symbol": "BTCUSDT",
+    "direction": "short",
+    "volume": 0.151,
+    "open_price": 65850,
+    "close_price": 66119.4,
+    "open_time": "2026-06-15T12:16:22",
+    "close_time": "2026-06-15T16:19:51",
+    "profit": -40.67,
+    "fee": 3.99,
+    "ticket": 1002
+  },
+  {
+    "symbol": "XAUUSD",
+    "direction": "long",
+    "volume": 0.20,
+    "open_price": 2350.50,
+    "open_time": "2026-06-16T08:00:00",
+    "ticket": 1003
+  }
+]
